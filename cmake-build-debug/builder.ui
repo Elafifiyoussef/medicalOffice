@@ -490,4 +490,216 @@
         </child>
     </object>
 
+    <!--    -->
+    <!--    delete Patient Window  -->
+    <!--    -->
+    <object id="DeletePatientWin" class="GtkApplicationWindow">
+        <property name="title">Supprimer un patient</property>
+        <child>
+            <object id="grid_del_patient" class="GtkGrid">
+                <property name="row-spacing">20</property>
+                <property name="column-spacing">10</property>
+                <child>
+                    <object id="id_del_label" class="GtkLabel">
+                        <property name="label">enter id: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_del_entry" class="GtkEntry">
+                        <property name="placeholder-text">id</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_del_btn" class="GtkButton">
+                        <property name="label">find</property>
+                        <layout>
+                            <property name="column">9</property>
+                            <property name="row">1</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="lName_del_label" class="GtkLabel">
+                        <property name="label">Nom: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">2</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+
+                <child>
+                    <object id="lName_del_entry" class="GtkEntry">
+                        <property name="placeholder-text">Nom</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">3</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="fName_del_label" class="GtkLabel">
+                        <property name="label">Prenom: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">4</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="fName_del_entry" class="GtkEntry">
+                        <property name="placeholder-text">Prenom</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">5</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="age_del_label" class="GtkLabel">
+                        <property name="label">Age: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="age_del_entry" class="GtkEntry">
+                        <property name="placeholder-text">age</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="addr_del_label" class="GtkLabel">
+                        <property name="label">Address: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">8</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="addr_del_entry" class="GtkEntry">
+                        <property name="placeholder-text">address</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">9</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="phone_del_label" class="GtkLabel">
+                        <property name="label">Phone: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">10</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="phone_del_entry" class="GtkEntry">
+                        <property name="placeholder-text">Phone</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">11</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="del_pt_btn" class="GtkButton">
+                        <property name="label">supprimer</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">12</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="return_del_btn" class="GtkButton">
+                        <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">13</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+    <object id="DisplayPatientWin" class="GtkApplicationWindow">
+        <property name="title">Afficher les patients</property>
+        <child>
+            <object id="grid_dspl_patient" class="GtkGrid">
+                <property name="row-spacing">20</property>
+                <property name="column-spacing">10</property>
+
+                <child>
+                    <object id="update_dspl_btn" class="GtkButton">
+                        <property name="label">actualiser</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">12</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="return_dspl_btn" class="GtkButton">
+                        <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">13</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
 </interface>

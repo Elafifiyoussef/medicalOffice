@@ -79,13 +79,13 @@ void modifyPatient(const Patient patient) {
         printf("File could not be opened\n");
         return;
     }
-    Patient buffer = {0};
+    Patient *buffer = malloc(sizeof(Patient));
     int found = 0;
 
     FILE *temp = fopen("temp.bin","wb");
-    while (fread(&buffer, sizeof(Patient), 1, file)) {
-        if (patient.id != buffer.id) {
-            fwrite(&buffer, sizeof(Patient), 1, temp);
+    while (fread(buffer, sizeof(Patient), 1, file)) {
+        if (patient.id != buffer->id) {
+            fwrite(buffer, sizeof(Patient), 1, temp);
         } else {
             fwrite(&patient, sizeof(Patient), 1, temp);
             found = 1;
@@ -99,6 +99,7 @@ void modifyPatient(const Patient patient) {
     }
     fclose(temp);
     fclose(file);
+    free(buffer);
 
     remove("patient.bin");
     rename("temp.bin","patient.bin");
@@ -123,4 +124,61 @@ Patient* findPatient(int id) {
     return NULL;
 }
 
+Patient *getPatients() {
+    FILE *file = fopen("patient.bin","rb");
+    if (file == NULL) {
+        printf("File not found\n");
+    }
+
+    fseek(file, 0, SEEK_END);
+    int size = ftell(file);
+    rewind(file);
+
+    int count = size/sizeof(Patient);
+    if (count == 0) {
+        printf("File could not be found\n");
+        fclose(file);
+        return NULL;
+    }
+
+    Patient *patients = malloc(count * sizeof(Patient));
+    if (patients == NULL) {
+        printf("Memory allocation failed\n");
+        fclose(file);
+        return NULL;
+    }
+
+    size_t read = fread(patients, sizeof(Patient), count, file);
+    if (read != count) {
+        printf("Error reading file: expecting %d but read %zu\n", count, read);
+        fclose(file);
+        free(patients);
+        return NULL;
+    }
+
+    fclose(file);
+    return patients;
+}
+
+int getPatientCount() {
+    FILE *file = fopen("patient.bin", "rb");
+    if (file == NULL) {
+        printf("File not found\n");
+        return 0; // Return 0 if the file cannot be opened
+    }
+
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    if (size == -1) {
+        printf("Error getting file size\n");
+        fclose(file);
+        return 0; // Return 0 if there was an error
+    }
+    rewind(file);
+
+    int count = size / sizeof(Patient);
+
+    fclose(file);
+    return count; // Return the count of patients
+}
 
