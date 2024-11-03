@@ -122,24 +122,34 @@ static void g_modify_patient(GtkButton *btn, gpointer data) {
     GtkEntryBuffer *buffer_phone = gtk_entry_get_buffer(entry_phone);
     const char* phone = gtk_entry_buffer_get_text(buffer_phone);
 
-    Patient patient;
-    patient.id = id_value;
-    strcpy(patient.lName, lName);
-    strcpy(patient.fName, fName);
-    patient.age = age_value;
-    strcpy(patient.address, addr);
-    strcpy(patient.phone, phone);
+    Patient *patient = malloc(sizeof(Patient));
+    patient->id = id_value;
+    strcpy(patient->lName, lName);
+    strcpy(patient->fName, fName);
+    patient->age = age_value;
+    strcpy(patient->address, addr);
+    strcpy(patient->phone, phone);
 
-    modifyPatient(patient);
+    modifyPatient(*patient);
+    free(patient);
+    // empty buffers for each entry to clear them individually
+    buffer_id = gtk_entry_buffer_new("", -1);
+    gtk_entry_set_buffer(entry_id, buffer_id);
 
-    // emptying entries using a buffer
-    GtkEntryBuffer *buffer = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_id, buffer);
-    gtk_entry_set_buffer(entry_lName, buffer);
-    gtk_entry_set_buffer(entry_fName, buffer);
-    gtk_entry_set_buffer(entry_age, buffer);
-    gtk_entry_set_buffer(entry_addr, buffer);
-    gtk_entry_set_buffer(entry_phone, buffer);
+    buffer_lName = gtk_entry_buffer_new("", -1);
+    gtk_entry_set_buffer(entry_lName, buffer_lName);
+
+    buffer_fName = gtk_entry_buffer_new("", -1);
+    gtk_entry_set_buffer(entry_fName, buffer_fName);
+
+    buffer_age = gtk_entry_buffer_new("", -1);
+    gtk_entry_set_buffer(entry_age, buffer_age);
+
+    buffer_addr = gtk_entry_buffer_new("", -1);
+    gtk_entry_set_buffer(entry_addr, buffer_addr);
+
+    buffer_phone = gtk_entry_buffer_new("", -1);
+    gtk_entry_set_buffer(entry_phone, buffer_phone);
 
     gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_lName)), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(entry_lName), FALSE);
@@ -174,13 +184,25 @@ static void g_find_patient(GtkButton *btn, gpointer data) {
 
         g_print("No such patient with id %d\n",id_pt);
 
-        // emptying entries using a buffer
-        GtkEntryBuffer *buffer = gtk_entry_buffer_new("", -1);
-        gtk_entry_set_buffer(entry_lName, buffer);
-        gtk_entry_set_buffer(entry_fName, buffer);
-        gtk_entry_set_buffer(entry_age, buffer);
-        gtk_entry_set_buffer(entry_addr, buffer);
-        gtk_entry_set_buffer(entry_phone, buffer);
+        // Create new, empty buffers for each entry to clear them individually
+        buffer_id = gtk_entry_buffer_new("", -1);
+        gtk_entry_set_buffer(entry_id, buffer_id);
+
+        GtkEntryBuffer *buffer_lName = gtk_entry_buffer_new("", -1);
+        gtk_entry_set_buffer(entry_lName, buffer_lName);
+
+        GtkEntryBuffer *buffer_fName = gtk_entry_buffer_new("", -1);
+        gtk_entry_set_buffer(entry_fName, buffer_fName);
+
+        GtkEntryBuffer *buffer_age = gtk_entry_buffer_new("", -1);
+        gtk_entry_set_buffer(entry_age, buffer_age);
+
+        GtkEntryBuffer *buffer_addr = gtk_entry_buffer_new("", -1);
+        gtk_entry_set_buffer(entry_addr, buffer_addr);
+
+        GtkEntryBuffer *buffer_phone = gtk_entry_buffer_new("", -1);
+        gtk_entry_set_buffer(entry_phone, buffer_phone);
+
 
         gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_lName)), FALSE);
         gtk_widget_set_sensitive(GTK_WIDGET(entry_lName), FALSE);
@@ -415,18 +437,6 @@ static void set_modify_patient_win_objs(GtkBuilder *builder, GObject **win) {
     GObject *age_mod_entry = gtk_builder_get_object(builder, "age_mod_entry");
     GObject *addr_mod_entry = gtk_builder_get_object(builder, "addr_mod_entry");
     GObject *phone_mod_entry = gtk_builder_get_object(builder, "phone_mod_entry");
-
-    // locking entries
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(lName_mod_entry)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(lName_mod_entry), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(fName_mod_entry)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(fName_mod_entry), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(age_mod_entry)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(age_mod_entry), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(addr_mod_entry)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(addr_mod_entry), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(phone_mod_entry)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(phone_mod_entry), FALSE);
 
     GObject *id_btn = gtk_builder_get_object(builder, "id_mod_btn");
     GObject *mod_pt_btn = gtk_builder_get_object(builder, "mod_pt_btn");
