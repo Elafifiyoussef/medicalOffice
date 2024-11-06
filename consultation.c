@@ -5,19 +5,9 @@
 #include "cfile.h"
 #include "patient.h"
 
-void createConsultation() {
-    Consultation consult;
-    printf("add ID:");
-    scanf("%d", &consult.id);
-    printf("add symptoms:");
-    scanf("%s", consult.symptoms);
-    printf("add diagnosis:");
-    scanf("%s", consult.diagnosis);
-    printf("add treatment plan:");
-    scanf("%s", consult.treatmentPlan);
-    printf("consultation date:");
-    consult.DateTime = time(NULL);
-    struct tm *localTime = localtime(&consult.DateTime);
+void createConsultation(Consultation *consult) {
+    consult->DateTime = time(NULL);
+    struct tm *localTime = localtime(&consult->DateTime);
     printf("Current local time: %s", asctime(localTime));
     appendToFile("consultation.bin", &consult, sizeof(Consultation));
 }

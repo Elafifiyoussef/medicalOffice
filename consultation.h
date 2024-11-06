@@ -7,7 +7,7 @@
 #define MAX_DIAGNOSIS_LENGTH 100
 #define MAX_TREATMENT_LENGTH 100
 
-typedef struct {
+typedef struct consultation{
     int id;
     int patient_id;
     char symptoms[MAX_SYMPTOMS_LENGTH];
@@ -16,11 +16,10 @@ typedef struct {
     time_t DateTime ;
 } Consultation;
 
-void createConsultation();
+void createConsultation(Consultation *consult);
 void modifyConsultation(int id);
 void deleteConsultation(int id);
 void displayConsultation(Consultation *consult);
 void displayAllConsultation();
-
 
 #endif //CONSULTATION_H

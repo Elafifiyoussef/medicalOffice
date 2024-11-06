@@ -39,6 +39,8 @@
         </child>
     </object>
 
+<!--    Menu Window  -->
+
     <object id="menuWindow" class="GtkApplicationWindow">
         <property name="title">Menu</property>
         <child>
@@ -107,6 +109,8 @@
         </child>
     </object>
 
+<!--    Patient menu Window  -->
+
     <object id="patientWindow" class="GtkApplicationWindow">
         <property name="title">Gestion de patient</property>
         <child>
@@ -166,9 +170,9 @@
             </object>
         </child>
     </object>
-<!--    -->
+
 <!--    Add Patient Window  -->
-<!--    -->
+
     <object id="AddPatientWin" class="GtkApplicationWindow">
         <property name="title">Ajouter un patient</property>
         <child>
@@ -177,8 +181,8 @@
                 <property name="column-spacing">10</property>
 
                 <child>
-                    <object id="lName_label" class="GtkLabel">
-                        <property name="label">Nom: </property>
+                    <object id="id_label" class="GtkLabel">
+                        <property name="label">id: </property>
                         <layout>
                             <property name="column">1</property>
                             <property name="row">0</property>
@@ -188,11 +192,33 @@
                 </child>
 
                 <child>
+                    <object id="id_entry" class="GtkEntry">
+                        <property name="placeholder-text">id</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="lName_label" class="GtkLabel">
+                        <property name="label">Nom: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">2</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
                     <object id="lName_entry" class="GtkEntry">
                         <property name="placeholder-text">Nom</property>
                         <layout>
-                            <property name="column">3</property>
-                            <property name="row">1</property>
+                            <property name="column">1</property>
+                            <property name="row">3</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -203,7 +229,7 @@
                         <property name="label">Prenom: </property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">2</property>
+                            <property name="row">4</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -214,7 +240,7 @@
                         <property name="placeholder-text">Prenom</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">3</property>
+                            <property name="row">5</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -225,7 +251,7 @@
                         <property name="label">Age: </property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">4</property>
+                            <property name="row">6</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -236,7 +262,7 @@
                         <property name="placeholder-text">age</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">5</property>
+                            <property name="row">7</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -247,7 +273,7 @@
                         <property name="label">Address: </property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">6</property>
+                            <property name="row">8</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -258,7 +284,7 @@
                         <property name="placeholder-text">address</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">7</property>
+                            <property name="row">9</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -269,7 +295,7 @@
                         <property name="label">Phone: </property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">8</property>
+                            <property name="row">10</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -280,7 +306,7 @@
                         <property name="placeholder-text">Phone</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">9</property>
+                            <property name="row">11</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -291,7 +317,7 @@
                         <property name="label">ajouter</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">10</property>
+                            <property name="row">12</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -302,7 +328,7 @@
                         <property name="label">retourner</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">11</property>
+                            <property name="row">13</property>
                             <property name="column-span">8</property>
                         </layout>
                     </object>
@@ -310,9 +336,9 @@
             </object>
         </child>
     </object>
-    <!--    -->
-    <!--    Modify Patient Window  -->
-    <!--    -->
+
+<!--    Modify Patient Window  -->
+
     <object id="ModifyPatientWin" class="GtkApplicationWindow">
         <property name="title">Modifier un patient</property>
         <child>
@@ -490,9 +516,8 @@
         </child>
     </object>
 
-    <!--    -->
-    <!--    delete Patient Window  -->
-    <!--    -->
+<!--    delete Patient Window  -->
+
     <object id="DeletePatientWin" class="GtkApplicationWindow">
         <property name="title">Supprimer un patient</property>
         <child>
@@ -669,6 +694,8 @@
         </child>
     </object>
 
+<!--    Display Patient Window  -->
+
     <object id="DisplayPatientWin" class="GtkApplicationWindow">
         <property name="title">Afficher les patients</property>
         <child>
@@ -701,5 +728,569 @@
             </object>
         </child>
     </object>
+
+<!--    Consultation Window-->
+
+    <object id="consultWindow" class="GtkApplicationWindow">
+        <property name="title">Gestion de consultation</property>
+        <child>
+            <object id="grid_consult" class="GtkGrid">
+                <property name="row-spacing">10</property>
+                <property name="column-spacing">10</property>
+                <child>
+                    <object id="btn_add_consult" class="GtkButton">
+                        <property name="label">Ajouter une consultation</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+                <child>
+                    <object id="btn_modify_consult" class="GtkButton">
+                        <property name="label">modifier une consultation</property>
+                        <layout>
+                            <property name="column">6</property>
+                            <property name="row">0</property>
+                            <property name="column-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+                <child>
+                    <object id="btn_remove_consult" class="GtkButton">
+                        <property name="label">Supprimer consultation</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">2</property>
+                            <property name="column-span">6</property>
+                        </layout>
+                    </object>
+                </child>
+                <child>
+                    <object id="btn_display_consult" class="GtkButton">
+                        <property name="label">Afficher les consultations</property>
+                        <layout>
+                            <property name="column">6</property>
+                            <property name="row">2</property>
+                            <property name="column-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+                <child>
+                    <object id="btn_consult_to_menu" class="GtkButton">
+                        <property name="label">back to menu</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">4</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </object>
+
+    <!--    Add Consultation Window-->
+
+    <object id="AddConsultWin" class="GtkApplicationWindow">
+        <property name="title">Ajouter une consultation</property>
+        <child>
+            <object id="grid_add_consult" class="GtkGrid">
+                <property name="row-spacing">20</property>
+                <property name="column-spacing">10</property>
+
+                <child>
+                    <object id="id_consult_label" class="GtkLabel">
+                        <property name="label">id de consultation: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_consult_entry" class="GtkEntry">
+                        <property name="placeholder-text">id de consultation</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_patient_label" class="GtkLabel">
+                        <property name="label">id de patient: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">2</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_patient_entry" class="GtkEntry">
+                        <property name="placeholder-text">id de patient</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">3</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="symptoms_label" class="GtkLabel">
+                        <property name="label">symptoms: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">4</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="symptoms_entry" class="GtkEntry">
+                        <property name="placeholder-text">symptoms</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">5</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="diagnosis_label" class="GtkLabel">
+                        <property name="label">diagnosis: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="diagnosis_entry" class="GtkEntry">
+                        <property name="placeholder-text">diagnosis</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="treatmentPlan_label" class="GtkLabel">
+                        <property name="label">plan de treatment: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">8</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="treatmentPlan_entry" class="GtkEntry">
+                        <property name="placeholder-text">plan de treatment</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">9</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="submit_consult_btn" class="GtkButton">
+                        <property name="label">ajouter</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">12</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="return_add_consult_btn" class="GtkButton">
+                        <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">13</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+    <!--    Modify Consultation Window-->
+
+    <object id="ModifyConsultWin" class="GtkApplicationWindow">
+        <property name="title">Modifier un patient</property>
+        <child>
+            <object id="grid_modify_consult_z" class="GtkGrid">
+                <property name="row-spacing">20</property>
+                <property name="column-spacing">10</property>
+
+                <child>
+                    <object id="id_mod_patient_label" class="GtkLabel">
+                        <property name="label">id de patient: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_mod_patient_entry" class="GtkEntry">
+                        <property name="placeholder-text">id de patient</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="find_id_pt_consult_btn" class="GtkButton">
+                        <property name="label">find</property>
+                        <layout>
+                            <property name="column">9</property>
+                            <property name="row">1</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_mod_consult_label" class="GtkLabel">
+                        <property name="label">id de consultation: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">2</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="id_mod_consult_entry" class="GtkEntry">
+                        <property name="placeholder-text">id de consultation</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">3</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="find_id_consult_btn" class="GtkButton">
+                        <property name="label">find</property>
+                        <layout>
+                            <property name="column">9</property>
+                            <property name="row">3</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="symptoms_mod_label" class="GtkLabel">
+                        <property name="label">symptoms: </property>
+                        <layout>
+                        <property name="column">1</property>
+                        <property name="row">4</property>
+                        <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="symptoms_mod_entry" class="GtkEntry">
+                        <property name="placeholder-text">symptoms</property>
+                        <layout>
+                        <property name="column">1</property>
+                        <property name="row">5</property>
+                        <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="diagnosis_mod_label" class="GtkLabel">
+                        <property name="label">diagnosis: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="diagnosis_mod_entry" class="GtkEntry">
+                        <property name="placeholder-text">diagnosis</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="treatmentPlan_mod_label" class="GtkLabel">
+                        <property name="label">plan de treatment: </property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">8</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="treatmentPlan_mod_entry" class="GtkEntry">
+                        <property name="placeholder-text">plan de treatment</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">9</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="mod_consult_btn" class="GtkButton">
+                        <property name="label">modifier</property>
+                        <layout>
+                        <property name="column">1</property>
+                        <property name="row">10</property>
+                        <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="return_mod_consult_btn" class="GtkButton">
+                        <property name="label">annuler</property>
+                        <layout>
+                        <property name="column">1</property>
+                        <property name="row">11</property>
+                        <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+
+    <!--    -->
+    <!--    delete Patient Window  -->
+    <!--    -->
+<!--    <object id="DeleteConsultWin" class="GtkApplicationWindow">-->
+<!--        <property name="title">Supprimer un patient</property>-->
+<!--        <child>-->
+<!--            <object id="grid_del_consult" class="GtkGrid">-->
+<!--                <property name="row-spacing">20</property>-->
+<!--                <property name="column-spacing">10</property>-->
+<!--                <child>-->
+<!--                    <object id="id_del_consult_btn" class="GtkButton">-->
+<!--                        <property name="label">find</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">9</property>-->
+<!--                            <property name="row">1</property>-->
+<!--                            <property name="column-span">1</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="id_del_consult_label" class="GtkLabel">-->
+<!--                        <property name="label">id de consultation: </property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">0</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="id_del_consult_entry" class="GtkEntry">-->
+<!--                        <property name="placeholder-text">id de consultation</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">1</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="id_del_patient_label" class="GtkLabel">-->
+<!--                        <property name="label">id de patient: </property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">2</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="id_del_patient_entry" class="GtkEntry">-->
+<!--                        <property name="placeholder-text">id de patient</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">3</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="symptoms_del_label" class="GtkLabel">-->
+<!--                        <property name="label">symptoms: </property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">4</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="symptoms_del_entry" class="GtkEntry">-->
+<!--                        <property name="placeholder-text">symptoms</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">5</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="diagnosis_del_label" class="GtkLabel">-->
+<!--                        <property name="label">diagnosis: </property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">6</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="diagnosis_del_entry" class="GtkEntry">-->
+<!--                        <property name="placeholder-text">diagnosis</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">7</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="treatmentPlan_del_label" class="GtkLabel">-->
+<!--                        <property name="label">plan de treatment: </property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">8</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="treatmentPlan_del_entry" class="GtkEntry">-->
+<!--                        <property name="placeholder-text">plan de treatment</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">9</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="del_consult_btn" class="GtkButton">-->
+<!--                        <property name="label">supprimer</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">12</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="return_del_consult_btn" class="GtkButton">-->
+<!--                        <property name="label">annuler</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">13</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--            </object>-->
+<!--        </child>-->
+<!--    </object>-->
+
+<!--    <object id="DisplayConsultWin" class="GtkApplicationWindow">-->
+<!--        <property name="title">Afficher les patients</property>-->
+<!--        <child>-->
+<!--            <object id="grid_dspl_consult" class="GtkGrid">-->
+<!--                <property name="row-spacing">20</property>-->
+<!--                <property name="column-spacing">10</property>-->
+
+<!--                <child>-->
+<!--                    <object id="update_dspl_consult_btn" class="GtkButton">-->
+<!--                        <property name="label">actualiser</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">12</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--                <child>-->
+<!--                    <object id="return_dspl_consult_btn" class="GtkButton">-->
+<!--                        <property name="label">retourner</property>-->
+<!--                        <layout>-->
+<!--                            <property name="column">1</property>-->
+<!--                            <property name="row">13</property>-->
+<!--                            <property name="column-span">8</property>-->
+<!--                        </layout>-->
+<!--                    </object>-->
+<!--                </child>-->
+
+<!--            </object>-->
+<!--        </child>-->
+<!--    </object>-->
 
 </interface>
