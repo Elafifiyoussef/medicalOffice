@@ -84,10 +84,12 @@ static void g_add_patient(GtkButton *btn, gpointer data) {
         strcpy(patient.address, addr);
         strcpy(patient.phone, phone);
 
+        displayPatient(patient);
         addPatient(patient);
     } else {
         g_printerr("Error: Patient is NULL\n");
     }
+
 }
 
 static void g_modify_patient(GtkButton *btn, gpointer data) {
@@ -331,26 +333,25 @@ static void g_find_patient(GtkButton *btn, gpointer data) {
 }
 
 static void g_update_display_patient(GtkButton *btn, gpointer data) {
-
     Patient *patients = getPatients();
     int patient_count = getPatientCount();
+    g_print("Nombre de patient: %d\n",patient_count);
     GtkGrid *grid = GTK_GRID(data);
 
+    // Loop through patients to update or create labels
     for (int i = 0; i < patient_count; i++) {
-        // Convert data fields to strings
         char id_text[20], age_text[10];
         snprintf(id_text, sizeof(id_text), "%d", patients[i].id);
         snprintf(age_text, sizeof(age_text), "%d", patients[i].age);
 
-        // Attempt to retrieve existing labels for each field in the current row
-        GtkWidget *id_label = gtk_grid_get_child_at(grid, 0, i + 1);
-        GtkWidget *lName_label = gtk_grid_get_child_at(grid, 1, i + 1);
-        GtkWidget *fName_label = gtk_grid_get_child_at(grid, 2, i + 1);
-        GtkWidget *age_label = gtk_grid_get_child_at(grid, 3, i + 1);
-        GtkWidget *addr_label = gtk_grid_get_child_at(grid, 4, i + 1);
-        GtkWidget *phone_label = gtk_grid_get_child_at(grid, 5, i + 1);
+        GtkWidget *id_label = gtk_grid_get_child_at(grid, 0, i + 2);
+        GtkWidget *lName_label = gtk_grid_get_child_at(grid, 1, i + 2);
+        GtkWidget *fName_label = gtk_grid_get_child_at(grid, 2, i + 2);
+        GtkWidget *age_label = gtk_grid_get_child_at(grid, 3, i + 2);
+        GtkWidget *addr_label = gtk_grid_get_child_at(grid, 4, i + 2);
+        GtkWidget *phone_label = gtk_grid_get_child_at(grid, 5, i + 2);
 
-        // If the label exists, update its text; otherwise, create a new label and attach it to the grid
+        // Update labels if they exist, otherwise create new labels
         if (id_label) {
             gtk_label_set_text(GTK_LABEL(id_label), id_text);
             gtk_label_set_text(GTK_LABEL(lName_label), patients[i].lName);
@@ -359,7 +360,6 @@ static void g_update_display_patient(GtkButton *btn, gpointer data) {
             gtk_label_set_text(GTK_LABEL(addr_label), patients[i].address);
             gtk_label_set_text(GTK_LABEL(phone_label), patients[i].phone);
         } else {
-            // Create and attach new labels to the grid for new rows
             id_label = gtk_label_new(id_text);
             lName_label = gtk_label_new(patients[i].lName);
             fName_label = gtk_label_new(patients[i].fName);
@@ -367,14 +367,15 @@ static void g_update_display_patient(GtkButton *btn, gpointer data) {
             addr_label = gtk_label_new(patients[i].address);
             phone_label = gtk_label_new(patients[i].phone);
 
-            gtk_grid_attach(grid, id_label, 0, i + 1, 1, 1);
-            gtk_grid_attach(grid, lName_label, 1, i + 1, 1, 1);
-            gtk_grid_attach(grid, fName_label, 2, i + 1, 1, 1);
-            gtk_grid_attach(grid, age_label, 3, i + 1, 1, 1);
-            gtk_grid_attach(grid, addr_label, 4, i + 1, 1, 1);
-            gtk_grid_attach(grid, phone_label, 5, i + 1, 1, 1);
+            gtk_grid_attach(grid, id_label, 0, i + 2, 1, 1);
+            gtk_grid_attach(grid, lName_label, 1, i + 2, 1, 1);
+            gtk_grid_attach(grid, fName_label, 2, i + 2, 1, 1);
+            gtk_grid_attach(grid, age_label, 3, i + 2, 1, 1);
+            gtk_grid_attach(grid, addr_label, 4, i + 2, 1, 1);
+            gtk_grid_attach(grid, phone_label, 5, i + 2, 1, 1);
         }
     }
+
 }
 
 static void g_add_consult(GtkButton *btn, gpointer data) {
@@ -817,11 +818,9 @@ static void set_display_patient_win_objs(GtkBuilder *builder, GObject **win) {
     Patient *patients = getPatients();
     int patient_count = getPatientCount();
 
-    GObject *grid = gtk_builder_get_object(builder, "grid_dspl_patient");
+    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "grid_dspl_patient"));
 
-    GObject **labels = g_new(GObject*, 6);
-
-    // Set up the grid headers
+    // Define grid headers
     GtkWidget *id_header = gtk_label_new("ID");
     GtkWidget *lName_header = gtk_label_new("Last Name");
     GtkWidget *fName_header = gtk_label_new("First Name");
@@ -830,12 +829,12 @@ static void set_display_patient_win_objs(GtkBuilder *builder, GObject **win) {
     GtkWidget *phone_header = gtk_label_new("Phone");
 
     // Add headers to the first row of the grid
-    gtk_grid_attach(GTK_GRID(grid), id_header, 0, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), lName_header, 1, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), fName_header, 2, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), age_header, 3, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), addr_header, 4, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), phone_header, 5, 0, 1, 1);
+    gtk_grid_attach(grid, id_header, 0, 1, 1, 1);
+    gtk_grid_attach(grid, lName_header, 1, 1, 1, 1);
+    gtk_grid_attach(grid, fName_header, 2, 1, 1, 1);
+    gtk_grid_attach(grid, age_header, 3, 1, 1, 1);
+    gtk_grid_attach(grid, addr_header, 4, 1, 1, 1);
+    gtk_grid_attach(grid, phone_header, 5, 1, 1, 1);
 
     // Add each patient's data to the grid
     for (int i = 0; i < patient_count; i++) {
@@ -844,7 +843,7 @@ static void set_display_patient_win_objs(GtkBuilder *builder, GObject **win) {
         snprintf(id_text, sizeof(id_text), "%d", patients[i].id);
         snprintf(age_text, sizeof(age_text), "%d", patients[i].age);
 
-        // Create labels for each field
+        // Create labels for each patient field
         GtkWidget *id_label = gtk_label_new(id_text);
         GtkWidget *lName_label = gtk_label_new(patients[i].lName);
         GtkWidget *fName_label = gtk_label_new(patients[i].fName);
@@ -852,20 +851,23 @@ static void set_display_patient_win_objs(GtkBuilder *builder, GObject **win) {
         GtkWidget *addr_label = gtk_label_new(patients[i].address);
         GtkWidget *phone_label = gtk_label_new(patients[i].phone);
 
-        // Attach labels to the grid
-        gtk_grid_attach(GTK_GRID(grid), id_label, 0, i + 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), lName_label, 1, i + 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), fName_label, 2, i + 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), age_label, 3, i + 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), addr_label, 4, i + 1, 1, 1);
-        gtk_grid_attach(GTK_GRID(grid), phone_label, 5, i + 1, 1, 1);
+        // Attach labels to the grid for each row of patient data
+        gtk_grid_attach(grid, id_label, 0, i + 2, 1, 1);
+        gtk_grid_attach(grid, lName_label, 1, i + 2, 1, 1);
+        gtk_grid_attach(grid, fName_label, 2, i + 2, 1, 1);
+        gtk_grid_attach(grid, age_label, 3, i + 2, 1, 1);
+        gtk_grid_attach(grid, addr_label, 4, i + 2, 1, 1);
+        gtk_grid_attach(grid, phone_label, 5, i + 2, 1, 1);
     }
 
-    GObject *return_btn = gtk_builder_get_object(builder, "return_dspl_btn");
-    GObject *update_btn = gtk_builder_get_object(builder, "update_dspl_btn");
+    // Create and attach buttons after the last row of patient data
+    GObject *dspl_pt_btn = gtk_builder_get_object(builder, "dspl_pt_btn");
+    GObject *return_dspl_btn = gtk_builder_get_object(builder, "return_dspl_btn");
 
-    g_signal_connect(update_btn, "clicked", G_CALLBACK(g_update_display_patient), grid);
-    g_signal_connect(return_btn, "clicked", G_CALLBACK(switch_to_patient), win);
+    // Connect button signals to their respective callbacks
+    g_signal_connect(dspl_pt_btn, "clicked", G_CALLBACK(g_update_display_patient), grid);
+    g_signal_connect(return_dspl_btn, "clicked", G_CALLBACK(switch_to_patient), win);
+
 }
 
 // set consultation windows objects

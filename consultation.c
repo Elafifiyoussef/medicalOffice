@@ -13,14 +13,14 @@ void createConsultation(Consultation *consult) {
 }
 
 void displayConsultation(Consultation *consult) {
-    printf("consultation ID: ");
-    printf("%d\n", consult->id);
-    printf("consultation symptoms: ");
-    printf("%s\n", consult->symptoms);
-    printf("consultation diagnosis: ");
-    printf("%s\n", consult->diagnosis);
-    printf("consultation treatment plan: ");
-    printf("%s\n", consult->treatmentPlan);
+    // printf("consultation ID: ");
+    // printf("%d\n", consult->id);
+    // printf("consultation symptoms: ");
+    // printf("%s\n", consult->symptoms);
+    // printf("consultation diagnosis: ");
+    // printf("%s\n", consult->diagnosis);
+    // printf("consultation treatment plan: ");
+    // printf("%s\n", consult->treatmentPlan);
     time_t date = consult->DateTime;
     struct tm *localTime = localtime(&date);
     printf("consultation date: %s\n", asctime(localTime));
