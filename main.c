@@ -22,6 +22,8 @@ static void print_btn_name(GtkButton *btn) {
     g_print("Button name: %s\n", s);
 }
 
+// Patient
+
 static void g_add_patient(GtkButton *btn, gpointer data) {
     GObject **entries = (GObject **)data;
     if (!entries) {
@@ -37,7 +39,7 @@ static void g_add_patient(GtkButton *btn, gpointer data) {
     GtkEntry *entry_addr = GTK_ENTRY(entries[4]);
     GtkEntry *entry_phone = GTK_ENTRY(entries[5]);
 
-    if (!entry_lName || !entry_fName || !entry_age || !entry_addr || !entry_phone) {
+    if (!entry_id || !entry_lName || !entry_fName || !entry_age || !entry_addr || !entry_phone) {
         g_printerr("Error: One of the entries is NULL\n");
         return;
     }
@@ -85,7 +87,7 @@ static void g_add_patient(GtkButton *btn, gpointer data) {
 static void add_patient_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "Ajouter up patient");
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Ajouter un patient");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
 
     // Create a vertical box for layout
@@ -141,94 +143,10 @@ static void add_patient_popup(GtkButton *btn, gpointer data) {
     gtk_window_present(GTK_WINDOW(popup_window));
 }
 
-static void g_modify_patient(GtkButton *btn, gpointer data) {
-
-    GObject **entries = (GObject **)data;
-    if (!entries) {
-        g_printerr("Error: entries is NULL\n");
-        return;
-    }
-
-    // Access each entry and print debug information
-    GtkEntry *entry_id = GTK_ENTRY(entries[0]);
-    GtkEntry *entry_lName = GTK_ENTRY(entries[1]);
-    GtkEntry *entry_fName = GTK_ENTRY(entries[2]);
-    GtkEntry *entry_age = GTK_ENTRY(entries[3]);
-    GtkEntry *entry_addr = GTK_ENTRY(entries[4]);
-    GtkEntry *entry_phone = GTK_ENTRY(entries[5]);
-
-    if (!entry_lName || !entry_fName || !entry_age || !entry_addr || !entry_phone) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
-
-    // Retrieve values from each entry
-    GtkEntryBuffer *buffer_id = gtk_entry_get_buffer(entry_id);
-    const char* id = gtk_entry_buffer_get_text(buffer_id);
-    int id_value = strtol(id, NULL, 10);
-
-    GtkEntryBuffer *buffer_lName = gtk_entry_get_buffer(entry_lName);
-    const char* lName = gtk_entry_buffer_get_text(buffer_lName);
-
-    GtkEntryBuffer *buffer_fName = gtk_entry_get_buffer(entry_fName);
-    const char* fName = gtk_entry_buffer_get_text(buffer_fName);
-
-    GtkEntryBuffer *buffer_age = gtk_entry_get_buffer(entry_age);
-    const char* age = gtk_entry_buffer_get_text(buffer_age);
-    int age_value = strtol(age, NULL, 10);
-
-    GtkEntryBuffer *buffer_addr = gtk_entry_get_buffer(entry_addr);
-    const char* addr = gtk_entry_buffer_get_text(buffer_addr);
-
-    GtkEntryBuffer *buffer_phone = gtk_entry_get_buffer(entry_phone);
-    const char* phone = gtk_entry_buffer_get_text(buffer_phone);
-
-    Patient *patient = malloc(sizeof(Patient));
-    patient->id = id_value;
-    strcpy(patient->lName, lName);
-    strcpy(patient->fName, fName);
-    patient->age = age_value;
-    strcpy(patient->address, addr);
-    strcpy(patient->phone, phone);
-    modifyPatient(*patient);
-    free(patient);
-
-    // empty buffers for each entry to clear them individually
-    buffer_id = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_id, buffer_id);
-
-    buffer_lName = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_lName, buffer_lName);
-
-    buffer_fName = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_fName, buffer_fName);
-
-    buffer_age = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_age, buffer_age);
-
-    buffer_addr = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_addr, buffer_addr);
-
-    buffer_phone = gtk_entry_buffer_new("", -1);
-    gtk_entry_set_buffer(entry_phone, buffer_phone);
-
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_lName)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(entry_lName), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_fName)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(entry_fName), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_age)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(entry_age), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_addr)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(entry_addr), FALSE);
-    gtk_editable_set_editable(GTK_EDITABLE(GTK_ENTRY(entry_phone)), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(entry_phone), FALSE);
-}
-
 static void g_delete_patient(GtkButton *btn, gpointer data) {
     int *id_value = data;
-    printf("id: %d\n", *id_value);
+    printf("Patient with id: %d have been deleted\n", *id_value);
     deletePatient(*id_value);
-
 }
 
 static void g_find_patient(GtkButton *btn, gpointer data) {
@@ -434,7 +352,7 @@ static void edit_patient_popup(GtkButton *btn, gpointer data) {
 static void g_update_display_patient(GtkButton *btn, gpointer data) {
 
     Patient *patients = getPatients();
-    int patient_count = getPatientCount();
+    int patient_count = getNumbOfPatient();
     GtkGrid *grid = GTK_GRID(data);
 
     int col= 0, row = 2;
@@ -478,6 +396,7 @@ static void g_update_display_patient(GtkButton *btn, gpointer data) {
     }
 }
 
+// Consultation
 static void g_add_consult(GtkButton *btn, gpointer data) {
     GObject **entries = (GObject **)data;
     if (!entries) {
@@ -488,11 +407,12 @@ static void g_add_consult(GtkButton *btn, gpointer data) {
     // Access each entry and print debug information
     GtkEntry *entry_id_consult = GTK_ENTRY(entries[0]);
     GtkEntry *entry_id_patient = GTK_ENTRY(entries[1]);
-    GtkEntry *entry_symptoms = GTK_ENTRY(entries[2]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(entries[3]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(entries[4]);
+    GtkEntry *entry_patient_name = GTK_ENTRY(entries[2]);
+    GtkEntry *entry_symptoms = GTK_ENTRY(entries[3]);
+    GtkEntry *entry_diagnosis = GTK_ENTRY(entries[4]);
+    GtkEntry *entry_treatmentPlan = GTK_ENTRY(entries[5]);
 
-    if (!entry_id_consult || !entry_id_patient || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
+    if (!entry_id_consult || !entry_id_patient || !entry_patient_name || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
         g_printerr("Error: One of the entries is NULL\n");
         return;
     }
@@ -506,6 +426,9 @@ static void g_add_consult(GtkButton *btn, gpointer data) {
     const char* id_patient = gtk_entry_buffer_get_text(buffer_id_patient);
     int id_patient_value = strtol(id_patient, NULL, 10);
 
+    GtkEntryBuffer *buffer_pt_name = gtk_entry_get_buffer(entry_symptoms);
+    const char* pt_name = gtk_entry_buffer_get_text(buffer_pt_name);
+
     GtkEntryBuffer *buffer_symptoms = gtk_entry_get_buffer(entry_symptoms);
     const char* symptoms = gtk_entry_buffer_get_text(buffer_symptoms);
 
@@ -516,26 +439,133 @@ static void g_add_consult(GtkButton *btn, gpointer data) {
     const char* treatmentPlan = gtk_entry_buffer_get_text(buffer_treatmentPlan);
 
     if (id_consult_value != 0 || id_patient_value != 0) {
-        Consultation consult;
+        Consult consult;
         consult.id = id_consult_value;
         consult.patient_id = id_patient_value;
         strcpy(consult.symptoms, symptoms);
         strcpy(consult.diagnosis, diagnosis);
         strcpy(consult.treatmentPlan, treatmentPlan);
 
-        createConsultation(&consult);
+        addConsultation(&consult);
     } else {
         g_printerr("Error: Consultation is NULL\n");
     }
 }
 
-static void g_modify_consult(GtkButton *btn, gpointer data) {}
+static void add_consult_popup(GtkButton *btn, gpointer data) {
+    // Create the popup window
+    GtkWidget *popup_window = gtk_window_new();
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Ajouter une consultation");
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
 
-static void g_delete_consult(GtkButton *btn, gpointer data) {}
+    // Create a vertical box for layout
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+
+    GtkWidget *id_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Id");
+
+    GtkWidget *id_pt_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Patient Id");
+
+    GtkWidget *name_pt_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(name_pt_entry), "Patient Name");
+
+    GtkWidget *symptoms_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(symptoms_entry), "Symptoms");
+
+    GtkWidget *diagnosis_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(diagnosis_entry), "Diagnosis");
+
+    GtkWidget *treatmentPlan_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
+
+
+    GtkWidget **entries =  g_new(GtkWidget*, 6);
+    entries[0] = id_entry;
+    entries[1] = id_pt_entry;
+    entries[2] = name_pt_entry;
+    entries[3] = symptoms_entry;
+    entries[4] = diagnosis_entry;
+    entries[5] = treatmentPlan_entry;
+
+    // Create the buttons
+    GtkWidget *add_btn = gtk_button_new_with_label("ajouter");
+    GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
+    // Connect the cancel button to close the window
+    g_signal_connect(add_btn, "clicked", G_CALLBACK(g_add_consult), entries);
+    g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
+
+    // Append widgets to the box
+    gtk_box_append(GTK_BOX(box), id_entry);
+    gtk_box_append(GTK_BOX(box), id_pt_entry);
+    gtk_box_append(GTK_BOX(box), name_pt_entry);
+    gtk_box_append(GTK_BOX(box), symptoms_entry);
+    gtk_box_append(GTK_BOX(box), diagnosis_entry);
+    gtk_box_append(GTK_BOX(box), treatmentPlan_entry);
+    gtk_box_append(GTK_BOX(box), add_btn);
+    gtk_box_append(GTK_BOX(box), cancel_btn);
+
+    // Show the popup window
+    gtk_window_present(GTK_WINDOW(popup_window));
+}
+
+static void g_delete_consult(GtkButton *btn, gpointer data) {
+    int *id_value = data;
+    printf("Consultation with id: %d have been deleted\n", *id_value);
+    deleteConsultation(*id_value);
+}
+
+static void g_modify_consult(GtkButton *btn, gpointer data) {}
 
 static void g_find_consult(GtkButton *btn, gpointer data) {}
 
-static void g_update_display_consult(GtkButton *btn, gpointer data){}
+static void g_update_display_consult(GtkButton *btn, gpointer data) {
+    Consult *consults = getPatients();
+    int patient_count = getNumbOfPatient();
+    GtkGrid *grid = GTK_GRID(data);
+
+    int col= 0, row = 2;
+    while (gtk_grid_get_child_at(grid, col, row) != NULL) {
+        while (col < 8) {
+            GtkWidget *child = gtk_grid_get_child_at(grid, col, row);
+            if (child != NULL) {
+                gtk_widget_unparent(child);
+            }
+            col++;
+        }
+        row++;
+        col = 0;
+    }
+
+    for (int i = 0; i < patient_count; i++) {
+        char id_text[20], age_text[10];
+        snprintf(id_text, sizeof(id_text), "%d", patients[i].id);
+        snprintf(age_text, sizeof(age_text), "%d", patients[i].age);
+        GtkWidget *id_label = gtk_label_new(id_text);
+        GtkWidget *lName_label = gtk_label_new(patients[i].lName);
+        GtkWidget *fName_label = gtk_label_new(patients[i].fName);
+        GtkWidget *age_label = gtk_label_new(age_text);
+        GtkWidget *addr_label = gtk_label_new(patients[i].address);
+        GtkWidget *phone_label = gtk_label_new(patients[i].phone);
+        GtkWidget *edit_btn = gtk_button_new_with_label("edit");
+        GtkWidget *delete_btn = gtk_button_new_with_label("delete");
+
+        // Attach labels to the grid for each row of patient data
+        gtk_grid_attach(grid, id_label, 0, i + 2, 1, 1);
+        gtk_grid_attach(grid, lName_label, 1, i + 2, 1, 1);
+        gtk_grid_attach(grid, fName_label, 2, i + 2, 1, 1);
+        gtk_grid_attach(grid, age_label, 3, i + 2, 1, 1);
+        gtk_grid_attach(grid, addr_label, 4, i + 2, 1, 1);
+        gtk_grid_attach(grid, phone_label, 5, i + 2, 1, 1);
+        gtk_grid_attach(grid, edit_btn, 6, i + 2, 1, 1);
+        gtk_grid_attach(grid, delete_btn, 7, i + 2, 1, 1);
+
+        g_signal_connect(delete_btn, "clicked", G_CALLBACK(g_delete_patient), &patients[i].id);
+        g_signal_connect(edit_btn, "clicked", G_CALLBACK(edit_patient_popup), &patients[i].id);
+    }
+}
 
 //===================================================================//
 // window creation & filling
@@ -558,7 +588,7 @@ static GObject** init_GObj_win(GtkBuilder *builder) {
         return NULL;
     }
 
-    wins[2] = gtk_builder_get_object(builder, "PatientWin");
+    wins[2] = gtk_builder_get_object(builder, "patientWin");
     if (!wins[2]) {
         g_printerr("Failed to get 'Display Patient' window from builder UI file\n");
         g_free(wins);
@@ -571,22 +601,6 @@ static GObject** init_GObj_win(GtkBuilder *builder) {
         g_free(wins);
         return NULL;
     }
-
-    wins[4] = gtk_builder_get_object(builder, "AddConsultWin");
-    if (!wins[4]) {
-        g_printerr("Failed to get 'Add Consultation' window from builder UI file\n");
-        g_free(wins);
-        return NULL;
-    }
-
-    wins[5] = gtk_builder_get_object(builder, "ModifyConsultWin");
-    if (wins[5] == NULL) {
-        g_printerr("Failed to get 'Modify Consultation' window from builder UI file\n");
-        g_free(wins);
-        return NULL;
-    }
-
-
     return wins;
 }
 
@@ -636,7 +650,7 @@ static void switch_to_display_patient(GtkButton *btn, gpointer user_data) {
 
 static void switch_to_consult(GtkButton *btn, gpointer user_data) {
     GObject **windows = (GObject **)user_data;
-    GtkWidget *window_consult = GTK_WIDGET(windows[7]);
+    GtkWidget *window_consult = GTK_WIDGET(windows[3]);
     GtkWidget *window_prev = gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW);
 
     if (GTK_IS_WINDOW(window_prev)) {
@@ -764,18 +778,38 @@ static void set_patient_win(GtkBuilder *builder, GObject **win) {
 }
 
 // set consultation windows objects
-static void set_consult_win_objs(GtkBuilder *builder, GObject **win) {
-    GObject *btn_add_consult = gtk_builder_get_object(builder, "btn_add_consult");
-    GObject *btn_modify_consult = gtk_builder_get_object(builder, "btn_modify_consult");
-    GObject *btn_remove_consult = gtk_builder_get_object(builder, "btn_remove_consult");
-    GObject *btn_display_consult = gtk_builder_get_object(builder, "btn_display_consult");
-    GObject *btn_consult_to_menu = gtk_builder_get_object(builder, "btn_consult_to_menu");
+static void set_consult_win(GtkBuilder *builder, GObject **win) {
 
-    g_signal_connect(btn_add_consult, "clicked", G_CALLBACK(switch_to_add_consult), win);
-    g_signal_connect(btn_modify_consult, "clicked", G_CALLBACK(switch_to_modify_consult), win);
-    g_signal_connect(btn_remove_consult, "clicked", G_CALLBACK(switch_to_delete_consult), win);
-    g_signal_connect(btn_display_consult, "clicked", G_CALLBACK(switch_to_display_consult), win);
-    g_signal_connect(btn_consult_to_menu, "clicked", G_CALLBACK(switch_to_menu), win);
+    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "grid_consult"));
+
+    // Define grid headers
+    GtkWidget *id_header = gtk_label_new("Consultation ID");
+    GtkWidget *id_pt_header = gtk_label_new("Patient ID");
+    GtkWidget *name_pt_header = gtk_label_new("Patient Name");
+    GtkWidget *symptoms_header = gtk_label_new("Symptoms");
+    GtkWidget *diagnosis_header = gtk_label_new("Diagnosis");
+    GtkWidget *treatmentPlan_header = gtk_label_new("Treatment Plan");
+
+    // Add headers to the first row of the grid
+    gtk_grid_attach(grid, id_header, 0, 1, 1, 1);
+    gtk_grid_attach(grid, id_pt_header, 1, 1, 1, 1);
+    gtk_grid_attach(grid, name_pt_header, 2, 1, 1, 1);
+    gtk_grid_attach(grid, symptoms_header, 3, 1, 1, 1);
+    gtk_grid_attach(grid, diagnosis_header, 4, 1, 1, 1);
+    gtk_grid_attach(grid, treatmentPlan_header, 5, 1, 1, 1);
+
+    g_update_display_consult(NULL, grid);
+
+    // Create and attach buttons after the last row of patient data
+    GObject *refresh_consult_btn = gtk_builder_get_object(builder, "refresh_consult_btn");
+    GObject *add_consult_btn = gtk_builder_get_object(builder, "add_consult_btn");
+    GObject *return_consult_btn = gtk_builder_get_object(builder, "return_consult_btn");
+
+    // Connect button signals to their respective callbacks
+    g_signal_connect(refresh_consult_btn, "clicked", G_CALLBACK(g_update_display_consult), grid);
+    g_signal_connect(add_consult_btn,"clicked", G_CALLBACK(add_consult_popup), NULL);
+    g_signal_connect(return_consult_btn, "clicked", G_CALLBACK(switch_to_menu), win);
+
 }
 
 static void set_add_consult_win_objs(GtkBuilder *builder, GObject **win) {
@@ -884,20 +918,11 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_window_set_application(GTK_WINDOW(wins[1]), app);
     gtk_window_set_application(GTK_WINDOW(wins[2]), app);
     gtk_window_set_application(GTK_WINDOW(wins[3]), app);
-    gtk_window_set_application(GTK_WINDOW(wins[4]), app);
-    gtk_window_set_application(GTK_WINDOW(wins[5]), app);
-    // gtk_window_set_application(GTK_WINDOW(wins[9]), app);
-    // gtk_window_set_application(GTK_WINDOW(wins[10]), app);
-    // gtk_window_set_application(GTK_WINDOW(wins[11]), app);
 
     set_login_win_objs(builder, wins);
     set_menu_win_objs(builder, wins);
     set_patient_win(builder, wins);
-    set_consult_win_objs(builder, wins);
-    set_add_consult_win_objs(builder, wins);
-    set_modify_consult_win_objs(builder, wins);
-    // set_delete_consult_win_objs(builder, wins);
-    // set_display_consult_win_objs(builder, wins);
+    set_consult_win(builder, wins);
 
     gtk_widget_set_visible(GTK_WIDGET(wins[0]), TRUE);
     g_object_unref(builder);

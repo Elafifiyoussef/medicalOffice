@@ -113,29 +113,11 @@ Patient* getPatient(int id) {
     return NULL;
 }
 
-int ifPatientExists(int id) {
-    FILE *file = fopen("patient.bin","rb");
-    if (file == NULL) {
-        printf("File not found\n");
-    }
-    Patient *patient = malloc(sizeof(Patient));
-
-    while (fread(patient, sizeof(Patient), 1, file)) {
-        if (id == patient->id) {
-            fclose(file);
-            free(patient);
-            return 1;
-        }
-    }
-    fclose(file);
-    free(patient);
-    return 0;
-}
-
 Patient *getPatients() {
     FILE *file = fopen("patient.bin","rb");
     if (file == NULL) {
         printf("File not found\n");
+        return NULL;
     }
 
     fseek(file, 0, SEEK_END);
@@ -168,7 +150,26 @@ Patient *getPatients() {
     return patients;
 }
 
-int getPatientCount() {
+int ifPatientExists(int id) {
+    FILE *file = fopen("patient.bin","rb");
+    if (file == NULL) {
+        printf("File not found\n");
+    }
+    Patient *patient = malloc(sizeof(Patient));
+
+    while (fread(patient, sizeof(Patient), 1, file)) {
+        if (id == patient->id) {
+            fclose(file);
+            free(patient);
+            return 1;
+        }
+    }
+    fclose(file);
+    free(patient);
+    return 0;
+}
+
+int getNumbOfPatient() {
     FILE *file = fopen("patient.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");

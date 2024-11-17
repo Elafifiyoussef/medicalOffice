@@ -14,12 +14,17 @@ typedef struct consultation{
     char diagnosis[MAX_DIAGNOSIS_LENGTH];
     char treatmentPlan[MAX_TREATMENT_LENGTH];
     time_t DateTime ;
-} Consultation;
+} Consult;
 
-void createConsultation(Consultation *consult);
-void modifyConsultation(int id);
+void addConsultation(Consult *consult);
 void deleteConsultation(int id);
-void displayConsultation(Consultation *consult);
+void modifyConsultation(Consult consult);
+void displayConsultation(Consult *consult);
 void displayAllConsultation();
+Consult* getConsultation(int id);
+Consult* getConsultations();
+Consult* getConsultsByPatientId(int id);
+int ifConsultExists(int id);
+int getNumbOfConsults();
 
 #endif //CONSULTATION_H
