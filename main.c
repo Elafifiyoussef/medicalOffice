@@ -71,7 +71,12 @@ static void g_add_patient(GtkButton *btn, gpointer data) {
         patient.age = age_value;
         strcpy(patient.address, addr);
         strcpy(patient.phone, phone);
-        addPatient(patient);
+        if (!ifPatientExists(id_value)){
+            addPatient(patient);
+        } else {
+            printf("Patient already exists\n");
+        }
+
     } else {
         g_printerr("Error: Patient is NULL\n");
     }
@@ -242,7 +247,7 @@ static void g_find_patient(GtkButton *btn, gpointer data) {
     GtkEntryBuffer *buffer_id = gtk_entry_get_buffer(entry_id);
     const char *s = gtk_entry_buffer_get_text(buffer_id);
     const int id_pt = strtol(s, NULL, 10);
-    Patient *patient = findPatient(id_pt);
+    Patient *patient = getPatient(id_pt);
     if (patient == NULL) {
 
         g_print("No such patient with id %d\n",id_pt);
@@ -725,9 +730,6 @@ static void set_menu_win_objs(GtkBuilder *builder, GObject **win) {
 
 // set patient windows objects
 static void set_patient_win(GtkBuilder *builder, GObject **win) {
-
-    Patient *patients = getPatients();
-    int patient_count = getPatientCount();
 
     GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "grid_patient"));
 

@@ -20,3 +20,15 @@
 608	703	7535591001536881	medical_office.exe	9ee4eb51754d79fa
 8	1705	7535617078293505	CMakeFiles/medical_office.dir/main.c.obj	273b41edff043059
 1705	2036	7535617095263251	medical_office.exe	9ee4eb51754d79fa
+15	131	7535628608443074	CMakeFiles/medical_office.dir/cfile.c.obj	10be5f2ba1c1f1e
+12	132	7535628608417796	CMakeFiles/medical_office.dir/consultation.c.obj	94af54a69aac717c
+18	140	7535628608473340	CMakeFiles/medical_office.dir/patient.c.obj	25a46601606a9e4
+8	760	7535628608377838	CMakeFiles/medical_office.dir/main.c.obj	273b41edff043059
+761	876	7535628615896306	medical_office.exe	9ee4eb51754d79fa
+8	756	7535629633193645	CMakeFiles/medical_office.dir/main.c.obj	273b41edff043059
+756	915	7535629640672018	medical_office.exe	9ee4eb51754d79fa
+15	103	7535634199024311	CMakeFiles/medical_office.dir/cfile.c.obj	10be5f2ba1c1f1e
+12	104	7535634198989266	CMakeFiles/medical_office.dir/consultation.c.obj	94af54a69aac717c
+18	114	7535634199054375	CMakeFiles/medical_office.dir/patient.c.obj	25a46601606a9e4
+8	607	7535634198949310	CMakeFiles/medical_office.dir/main.c.obj	273b41edff043059
+607	717	7535634204942222	medical_office.exe	9ee4eb51754d79fa

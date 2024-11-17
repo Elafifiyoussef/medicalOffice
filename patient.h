@@ -19,8 +19,9 @@ void deletePatient(int id);
 void modifyPatient(Patient patient);
 void displayPatient(Patient patient);
 void displayAllPatients();
-Patient *getPatients();
+Patient* getPatient(int id);
+Patient* getPatients();
+int ifPatientExists(int id);
 int getPatientCount();
-Patient* findPatient(int id);
 
 #endif //PATIENT_H

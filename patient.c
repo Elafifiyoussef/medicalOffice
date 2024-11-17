@@ -6,16 +6,6 @@
 #include "cfile.h"
 
 void addPatient(Patient patient) {
-    // printf(" Enter ID: ");
-    // scanf("%d", &patient.id);
-    // printf("Enter Name: ");
-    // scanf(" %19s", patient.name);
-    // printf("Enter Age: ");
-    // scanf("%d", &patient.age);
-    // printf("Enter Address: ");
-    // scanf(" %49s", patient.address);
-    // printf("Enter Phone: ");
-    // scanf(" %19s", patient.phone);
     appendToFile("patient.bin",&patient, sizeof(Patient));
 }
 
@@ -93,9 +83,9 @@ void modifyPatient(const Patient patient) {
     }
 
     if (found) {
-        printf("patient with ID %d modified\n", patient.id);
+        printf("patient with ID %d had been modified\n", patient.id);
     } else {
-        printf("patient with ID %d not found\n", patient.id);
+        printf("patient with ID %d is not found\n", patient.id);
     }
     fclose(temp);
     fclose(file);
@@ -105,7 +95,7 @@ void modifyPatient(const Patient patient) {
     rename("temp.bin","patient.bin");
 }
 
-Patient* findPatient(int id) {
+Patient* getPatient(int id) {
     FILE *file = fopen("patient.bin","rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -121,6 +111,25 @@ Patient* findPatient(int id) {
     fclose(file);
     free(patient);
     return NULL;
+}
+
+int ifPatientExists(int id) {
+    FILE *file = fopen("patient.bin","rb");
+    if (file == NULL) {
+        printf("File not found\n");
+    }
+    Patient *patient = malloc(sizeof(Patient));
+
+    while (fread(patient, sizeof(Patient), 1, file)) {
+        if (id == patient->id) {
+            fclose(file);
+            free(patient);
+            return 1;
+        }
+    }
+    fclose(file);
+    free(patient);
+    return 0;
 }
 
 Patient *getPatients() {
