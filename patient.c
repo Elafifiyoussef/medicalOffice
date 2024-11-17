@@ -105,7 +105,6 @@ void modifyPatient(const Patient patient) {
     rename("temp.bin","patient.bin");
 }
 
-
 Patient* findPatient(int id) {
     FILE *file = fopen("patient.bin","rb");
     if (file == NULL) {
