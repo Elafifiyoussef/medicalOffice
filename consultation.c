@@ -2,6 +2,7 @@
 #include "consultation.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "cfile.h"
 
@@ -19,7 +20,7 @@ void displayConsultation(Consult *consult) {
     printf("consultation ID: ");
     printf("%d\n", consult->id);
     printf("Patient ID: ");
-    printf("%d\n", consult->patient_id);
+    printf("%s\n", consult->patient_id);
     printf("consultation symptoms: ");
     printf("%s\n", consult->symptoms);
     printf("consultation diagnosis: ");
@@ -162,7 +163,7 @@ Consult* getConsultations() {
     return consults;
 }
 
-Consult* getConsultsByPatientId(int id) {
+Consult* getConsultsByPatientId(char *pt_id) {
     FILE *file = fopen("consultation.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -174,8 +175,7 @@ Consult* getConsultsByPatientId(int id) {
     int count = 0;
 
     while (fread(&buffer, sizeof(Consult), 1, file)) {
-        if (buffer.patient_id == id) {
-
+        if (strcmp(pt_id, buffer.patient_id) == 0) {
             Consult *temp = realloc(consults, (count + 1) * sizeof(Consult));
             if (temp == NULL) {
                 printf("Memory allocation failed\n");
@@ -192,7 +192,7 @@ Consult* getConsultsByPatientId(int id) {
     fclose(file);
 
     if (count == 0) {
-        printf("No consultations found for patient ID: %d\n", id);
+        printf("No consultations found for patient ID: %s\n", pt_id);
         return NULL;
     }
 

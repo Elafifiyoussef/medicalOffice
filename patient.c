@@ -10,7 +10,7 @@ void addPatient(Patient patient) {
 }
 
 void displayPatient(Patient patient) {
-    printf("ID: %d\n", patient.id);
+    printf("CIN: %s\n", patient.cin);
     printf("Last Name: %s\n", patient.lName);
     printf("First Name: %s\n", patient.fName);
     printf("Age: %d\n", patient.age);
@@ -32,7 +32,7 @@ void displayAllPatients() {
     fclose(file);
 }
 
-void deletePatient(int id) {
+void deletePatient(char *cin_id) {
     FILE *file = fopen("patient.bin","rb");
     if (file == NULL) {
         printf("File could not be opened\n");
@@ -44,7 +44,7 @@ void deletePatient(int id) {
 
     FILE *temp = fopen("temp.bin","wb");
     while (fread(&patient, sizeof(Patient), 1, file)) {
-        if (id != patient.id) {
+        if (strcmp(cin_id, patient.cin) != 0) {
             fwrite(&patient, sizeof(Patient), 1, temp);
         } else {
             found = 1;
@@ -52,9 +52,9 @@ void deletePatient(int id) {
     }
 
     if (found) {
-        printf("patient with ID %d deleted\n", id);
+        printf("patient with ID %s deleted\n", cin_id);
     } else {
-        printf("patient with ID %d not found\n", id);
+        printf("patient with ID %s not found\n", cin_id);
     }
     fclose(temp);
     fclose(file);
@@ -74,7 +74,7 @@ void modifyPatient(const Patient patient) {
 
     FILE *temp = fopen("temp.bin","wb");
     while (fread(buffer, sizeof(Patient), 1, file)) {
-        if (patient.id != buffer->id) {
+        if (strcmp(buffer->cin, patient.cin) != 0) {
             fwrite(buffer, sizeof(Patient), 1, temp);
         } else {
             fwrite(&patient, sizeof(Patient), 1, temp);
@@ -83,9 +83,9 @@ void modifyPatient(const Patient patient) {
     }
 
     if (found) {
-        printf("patient with ID %d had been modified\n", patient.id);
+        printf("patient with ID %s had been modified\n", patient.cin);
     } else {
-        printf("patient with ID %d is not found\n", patient.id);
+        printf("patient with ID %s is not found\n", patient.cin);
     }
     fclose(temp);
     fclose(file);
@@ -95,7 +95,7 @@ void modifyPatient(const Patient patient) {
     rename("temp.bin","patient.bin");
 }
 
-Patient* getPatient(int id) {
+Patient* getPatient(const char *cin_id) {
     FILE *file = fopen("patient.bin","rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -103,7 +103,7 @@ Patient* getPatient(int id) {
     Patient *patient = malloc(sizeof(Patient));
 
     while (fread(patient, sizeof(Patient), 1, file)) {
-        if (id == patient->id) {
+        if (!strcmp(cin_id, patient->cin)) {
             fclose(file);
             return patient;
         }
@@ -150,7 +150,7 @@ Patient *getPatients() {
     return patients;
 }
 
-int ifPatientExists(int id) {
+int ifPatientExists(const char *cin_id) {
     FILE *file = fopen("patient.bin","rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -158,7 +158,7 @@ int ifPatientExists(int id) {
     Patient *patient = malloc(sizeof(Patient));
 
     while (fread(patient, sizeof(Patient), 1, file)) {
-        if (id == patient->id) {
+        if (!strcmp(cin_id, patient->cin)) {
             fclose(file);
             free(patient);
             return 1;
