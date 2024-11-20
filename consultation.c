@@ -13,7 +13,9 @@ void addConsultation(Consult *consult) {
     consult->DateTime = time(NULL);
     struct tm *localTime = localtime(&consult->DateTime);
     printf("Current local time: %s", asctime(localTime));
-    appendToFile("consultation.bin", consult, sizeof(Consult));
+    if (!ifConsultExists(consult->id)) {
+        appendToFile("consultation.bin", consult, sizeof(Consult));
+    }
 }
 
 void displayConsultation(Consult *consult) {

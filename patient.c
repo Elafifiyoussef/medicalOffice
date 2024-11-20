@@ -6,7 +6,9 @@
 #include "cfile.h"
 
 void addPatient(Patient patient) {
-    appendToFile("patient.bin",&patient, sizeof(Patient));
+    if (!ifPatientExists(patient.cin)){
+        appendToFile("patient.bin",&patient, sizeof(Patient));
+    }
 }
 
 void displayPatient(Patient patient) {
