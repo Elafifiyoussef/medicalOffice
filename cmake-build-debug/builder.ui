@@ -39,8 +39,7 @@
         </child>
     </object>
 
-<!--    Menu Window  -->
-
+<!--Menu Window-->
     <object id="menuWindow" class="GtkApplicationWindow">
         <property name="title">Menu</property>
         <child>
@@ -109,8 +108,7 @@
         </child>
     </object>
 
-<!--    Patient menu Window  -->
-
+<!--Patient menu Window-->
     <object id="patientWin" class="GtkApplicationWindow">
         <property name="title">Afficher les patients</property>
         <child>
@@ -155,8 +153,7 @@
         </child>
     </object>
 
-<!--    Consultation Window-->
-
+<!--Consultation Window-->
     <object id="consultWindow" class="GtkApplicationWindow">
         <property name="title">Afficher les consultation</property>
         <child>
@@ -201,5 +198,49 @@
         </child>
     </object>
 
+<!--Rendezvous Window-->
+    <object id="rendezvousWindow" class="GtkApplicationWindow">
+        <property name="title">Afficher les rendez-vous</property>
+        <child>
+            <object id="grid_rendezvous" class="GtkGrid">
+                <property name="row-spacing">30</property>
+                <property name="column-spacing">20</property>
+
+                <child>
+                    <object id="refresh_rendezvous_btn" class="GtkButton">
+                        <property name="label">actualiser</property>
+                        <layout>
+                            <property name="column">4</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="add_rendezvous_btn" class="GtkButton">
+                        <property name="label">ajouter</property>
+                        <layout>
+                            <property name="column">5</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="return_rendezvous_btn" class="GtkButton">
+                        <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
 
 </interface>

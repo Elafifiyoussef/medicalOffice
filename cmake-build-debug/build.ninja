@@ -77,6 +77,13 @@ build CMakeFiles/medical_office.dir/patient.c.obj: C_COMPILER__medical_office_un
   OBJECT_DIR = CMakeFiles\medical_office.dir
   OBJECT_FILE_DIR = CMakeFiles\medical_office.dir
 
+build CMakeFiles/medical_office.dir/rendezvous.c.obj: C_COMPILER__medical_office_unscanned_Debug C$:/Users/asus/Documents/medicalOffice/rendezvous.c || cmake_object_order_depends_target_medical_office
+  DEP_FILE = CMakeFiles\medical_office.dir\rendezvous.c.obj.d
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  INCLUDES = -IC:/msys64/mingw64/bin/../include/gtk-4.0 -IC:/msys64/mingw64/bin/../include/pango-1.0 -IC:/msys64/mingw64/bin/../include/fribidi -IC:/msys64/mingw64/bin/../include/harfbuzz -IC:/msys64/mingw64/bin/../include/gdk-pixbuf-2.0 -IC:/msys64/mingw64/bin/../include/webp -IC:/msys64/mingw64/bin/../include/cairo -IC:/msys64/mingw64/bin/../include/freetype2 -IC:/msys64/mingw64/bin/../include/libpng16 -IC:/msys64/mingw64/bin/../include/pixman-1 -IC:/msys64/mingw64/bin/../include/graphene-1.0 -IC:/msys64/mingw64/bin/../lib/graphene-1.0/include -IC:/msys64/mingw64/bin/../include/glib-2.0 -IC:/msys64/mingw64/bin/../lib/glib-2.0/include
+  OBJECT_DIR = CMakeFiles\medical_office.dir
+  OBJECT_FILE_DIR = CMakeFiles\medical_office.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target medical_office
@@ -85,7 +92,7 @@ build CMakeFiles/medical_office.dir/patient.c.obj: C_COMPILER__medical_office_un
 #############################################
 # Link the executable medical_office.exe
 
-build medical_office.exe: C_EXECUTABLE_LINKER__medical_office_Debug CMakeFiles/medical_office.dir/main.c.obj CMakeFiles/medical_office.dir/consultation.c.obj CMakeFiles/medical_office.dir/cfile.c.obj CMakeFiles/medical_office.dir/patient.c.obj
+build medical_office.exe: C_EXECUTABLE_LINKER__medical_office_Debug CMakeFiles/medical_office.dir/main.c.obj CMakeFiles/medical_office.dir/consultation.c.obj CMakeFiles/medical_office.dir/cfile.c.obj CMakeFiles/medical_office.dir/patient.c.obj CMakeFiles/medical_office.dir/rendezvous.c.obj
   FLAGS = -g
   LINK_FLAGS = -Wl,--enable-auto-import
   LINK_LIBRARIES = -lgtk-4  -lpangowin32-1.0  -lpangocairo-1.0  -lpango-1.0  -lharfbuzz  -lgdk_pixbuf-2.0  -lcairo-gobject  -lcairo  -lvulkan-1  -lgraphene-1.0  -lgio-2.0  -lgobject-2.0  -lglib-2.0  -lintl  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32

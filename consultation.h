@@ -9,7 +9,7 @@
 
 typedef struct consultation{
     int id;
-    char patient_id[MAX_CIN_LENGTH];
+    char id_pt[MAX_CIN_LENGTH];
     char symptoms[MAX_SYMPTOMS_LENGTH];
     char diagnosis[MAX_DIAGNOSIS_LENGTH];
     char treatmentPlan[MAX_TREATMENT_LENGTH];
@@ -23,7 +23,7 @@ void displayConsultation(Consult *consult);
 void displayAllConsultation();
 Consult* getConsultation(int id);
 Consult* getConsultations();
-Consult* getConsultsByPatientId(char *pt_id);
+Consult* getConsultsByCin(char *pt_id);
 int ifConsultExists(int id);
 int getNumbOfConsults();
 

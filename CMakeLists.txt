@@ -11,6 +11,8 @@ set(SOURCE_FILES
         consultation.h consultation.c
         cfile.h cfile.c
         patient.h patient.c
+        rendezvous.h
+        rendezvous.c
 )
 
 # Create executable

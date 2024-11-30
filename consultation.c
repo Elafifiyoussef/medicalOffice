@@ -1,13 +1,8 @@
 #include <stdio.h>
-#include "consultation.h"
-
 #include <stdlib.h>
 #include <string.h>
-
+#include "consultation.h"
 #include "cfile.h"
-
-#include "cfile.h"
-#include "patient.h"
 
 void addConsultation(Consult *consult) {
     consult->DateTime = time(NULL);
@@ -22,7 +17,7 @@ void displayConsultation(Consult *consult) {
     printf("consultation ID: ");
     printf("%d\n", consult->id);
     printf("Patient ID: ");
-    printf("%s\n", consult->patient_id);
+    printf("%s\n", consult->id_pt);
     printf("consultation symptoms: ");
     printf("%s\n", consult->symptoms);
     printf("consultation diagnosis: ");
@@ -165,7 +160,7 @@ Consult* getConsultations() {
     return consults;
 }
 
-Consult* getConsultsByPatientId(char *pt_id) {
+Consult* getConsultsByCin(char *pt_id) {
     FILE *file = fopen("consultation.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -177,7 +172,7 @@ Consult* getConsultsByPatientId(char *pt_id) {
     int count = 0;
 
     while (fread(&buffer, sizeof(Consult), 1, file)) {
-        if (strcmp(pt_id, buffer.patient_id) == 0) {
+        if (strcmp(pt_id, buffer.id_pt) == 0) {
             Consult *temp = realloc(consults, (count + 1) * sizeof(Consult));
             if (temp == NULL) {
                 printf("Memory allocation failed\n");
