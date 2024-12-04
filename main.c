@@ -4,6 +4,7 @@
 #include "consultation.h"
 #include "patient.h"
 #include "rendezvous.h"
+#include <regex.h>
 
 static void window_close(GtkButton btn, GtkWindow *window) {
     gtk_window_close(window);
@@ -94,10 +95,67 @@ int isTextValid(const char* text) {
     return 1;
 }
 
+int isDateValid(int Year, int Month, int Day) {
+    // Get current date
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    int currentYear = tm.tm_year + 1900;
+    int currentMonth = tm.tm_mon + 1; // Months are 0-indexed in tm
+    int currentDay = tm.tm_mday;
+
+    if (Year < currentYear) {
+        return 0;
+    }
+
+    if (Year == currentYear && Month < currentMonth) {
+        return 0; // Month is invalid
+    }
+
+    // Check day if the year and month are the same
+    if (Year == currentYear && Month == currentMonth && Day < currentDay) {
+        return 0; // Day is invalid
+    }
+
+    return 1; // Date is valid
+}
+
+int isYearValid(int year) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    return tm.tm_year <= year;
+}
+
+int isMonthValid(int month) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    return tm.tm_mon <= month;
+}
+
+int isDayValid(int day) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    return tm.tm_mday <= day;
+}
+
+int isHourValid(int hour) {
+    return hour >= 8 && hour < 18;
+}
+
 const char* get_dropdown_item(GtkDropDown *dropdown) {
     GtkStringObject *item = gtk_drop_down_get_selected_item(dropdown);
     const char *year_str = gtk_string_object_get_string(item);
     return year_str;
+}
+
+int find_year_index(const char* target) {
+    const char months[6][5] = {"2024", "2025", "2026", "2027", "2028", "2029"};
+    for (int i = 0; i < 6 ; i++) {
+        if (strcmp(target, months[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 int find_month_index(const char* target) {
@@ -110,7 +168,26 @@ int find_month_index(const char* target) {
     return -1;
 }
 
-// The mapping function that converts month names to integers
+int find_day_index(const char* target) {
+    const char days[31][3] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"};
+    for (int i = 0; i < 31 ; i++) {
+        if (strcmp(target, days[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int find_hour_index(const char* target) {
+    const char hours[10][3] = {"8", "9", "10", "11", "12", "13", "14", "15", "16", "17"};
+    for (int i = 0; i < 10 ; i++) {
+        if (strcmp(target, hours[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void display_string_months(GListModel *model) {
     guint n_items = g_list_model_get_n_items(model); // Get number of items in the model
     // for (guint i = 0; i < n_items; i++) {
@@ -119,6 +196,7 @@ void display_string_months(GListModel *model) {
         g_print("Month %d: %s\n", 1, month);
     // }
 }
+
 
 //===================================================================//
 // Patient functionalities
@@ -497,7 +575,6 @@ static void edit_patient_popup(GtkButton *btn, gpointer data) {
     gtk_window_present(GTK_WINDOW(popup_window));
 }
 
-
 static void g_update_display_patient(GtkButton *btn, gpointer data) {
 
     Patient *patients = getPatients();
@@ -845,7 +922,6 @@ static void edit_consult_popup(GtkButton *btn, gpointer data) {
     gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
     set_text_entry(treatmentPlan_entry, consult->treatmentPlan);
 
-
     GtkWidget **widget =  g_new(GtkWidget*, 9);
     widget[0] = id_entry;
     widget[1] = id_pt_entry;
@@ -856,7 +932,6 @@ static void edit_consult_popup(GtkButton *btn, gpointer data) {
     widget[6] = symptoms_err_label;
     widget[7] = diagnosis_err_label;
     widget[8] = treatmentPlan_err_label;
-
 
     // Create the buttons
     GtkWidget *add_btn = gtk_button_new_with_label("modifier");
@@ -886,8 +961,8 @@ static void edit_consult_popup(GtkButton *btn, gpointer data) {
 static void g_update_display_consult(GtkButton *btn, gpointer data) {
     Consult *consults = getConsultations();
     int consult_count = getNumbOfConsults();
-    printf("Total Consultation: %d\n", consult_count);
-    displayAllConsultation();
+    // printf("Total Consultation: %d\n", consult_count);
+    // displayAllConsultation();
 
     GtkGrid *grid = GTK_GRID(data);
 
@@ -959,12 +1034,13 @@ static void g_add_rdv(GtkButton *btn, gpointer data) {
     GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[2]);
     GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[3]);
     GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[4]);
-    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[5]);
+    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[5]);
+    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[6]);
     //Labels
-    GtkLabel *label_id_rdv = GTK_LABEL(widgets[6]);
-    GtkLabel *label_id_pt = GTK_LABEL(widgets[7]);
-    GtkLabel *label_date = GTK_LABEL(widgets[8]);
-    GtkLabel *label_state = GTK_LABEL(widgets[9]);
+    GtkLabel *label_id_rdv = GTK_LABEL(widgets[7]);
+    GtkLabel *label_id_pt = GTK_LABEL(widgets[8]);
+    GtkLabel *label_date = GTK_LABEL(widgets[9]);
+    GtkLabel *label_state = GTK_LABEL(widgets[10]);
 
     if (!entry_id_rdv || !entry_id_pt || !dropdown_year || !dropdown_month || !dropdown_day || !dropdown_state) {
         g_printerr("Error: One of the entries is NULL\n");
@@ -972,33 +1048,62 @@ static void g_add_rdv(GtkButton *btn, gpointer data) {
     }
 
     // Retrieve values from each entry
-    int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
+    int rdv_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_pt));
     const char* rdv_year = get_dropdown_item(dropdown_year);
+    int year = strtol(rdv_year, NULL, 10);
     const char* rdv_month = get_dropdown_item(dropdown_month);
-    const int month_index = find_month_index(rdv_month);
+    int month = find_month_index(rdv_month);
     const char* rdv_day = get_dropdown_item(dropdown_day);
-    printf("Selected year: %s\n", rdv_year);
-    printf("Selected month: %s %d\n", rdv_month, month_index);
-    printf("Selected day: %s\n", rdv_day);
+    int day = strtol(rdv_day, NULL, 10);
+    const char* rdv_hour = get_dropdown_item(dropdown_hour);
+    int hour = atoi(rdv_hour);
+    const char* rdv_state = get_dropdown_item(dropdown_state);
 
-    // const char* rdv_state = get_text_from_entry(GTK_WIDGET(dropdown_state));
+    if (!isCinValid(patient_id)) {
+        gtk_label_set_text(label_id_pt, "CIN can only contain letters and numbers ([A-Za-z][0-9]) ()!");
+        return;
+    }
+    gtk_label_set_text(label_id_pt, "");
 
-    // if (consult_id != 0 && isCinValid(patient_id) && isTextValid(symptoms) && isTextValid(diagnosis) && isTextValid(treatmentPlan)) {
-    //     Consult consult;
-    //     consult.id = consult_id;
-    //     strcpy(consult.id_pt, patient_id);
-    //     strcpy(consult.symptoms, symptoms);
-    //     strcpy(consult.diagnosis, diagnosis);
-    //     strcpy(consult.treatmentPlan, treatmentPlan);
-    //     if (!ifConsultExists(consult_id) && ifPatientExists(patient_id)) {
-    //         addConsultation(&consult);
-    //     } else {
-    //         g_printerr("Consult already exist\n");
-    //     }
-    // } else {
-    //     g_printerr("Error: Consultation is NULL\n");
-    // }
+
+    if (!isDateValid(year, month, day)) {
+        gtk_label_set_text(label_date, "Date chosen is not valid");
+        return;
+    }
+    gtk_label_set_text(label_state, "");
+
+    if (!isHourValid(hour)) {
+        printf("Invalid hour\n");
+        return;
+    }
+
+    if (rdv_id != 0) {
+        Rendezvous rendezvous;
+        rendezvous.id = rdv_id;
+        strcpy(rendezvous.id_pt, patient_id);
+        rendezvous.day = day;
+        rendezvous.month = month;
+        rendezvous.year = year;
+        rendezvous.hour = hour;
+        strcpy(rendezvous.state, rdv_state);
+        if (is_holiday(rendezvous)) {
+            printf("Invalid Rendezvous: it's a holiday\n");
+            return;
+        }
+        if (is_weekend(rendezvous)) {
+            printf("Invalid Rendezvous: it's weekend\n");
+            return;
+        }
+        if (ifPatientExists(patient_id)) {
+            addRV(rendezvous);
+            // displayAllRVs();
+        } else {
+            g_printerr("Patient with ID: %s does not exist\n", patient_id);
+        }
+    } else {
+        g_printerr("Error: Rendezvous is NULL\n");
+    }
 }
 
 static void add_rdv_popup(GtkButton *btn, gpointer data) {
@@ -1033,11 +1138,6 @@ static void add_rdv_popup(GtkButton *btn, gpointer data) {
     const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL};
     GtkStringList * month_model = gtk_string_list_new(months);
 
-    // GtkMapListModel *month_map_list_model = gtk_map_list_model_new(G_LIST_MODEL(month_model), map_month_to_int, months, NULL);
-    // GListModel *month_list_model = G_LIST_MODEL(month_map_list_model);
-    // guint n_items = g_list_model_get_n_items(month_list_model);
-
-
     const char** days = malloc(32 * sizeof(char*));
     for (int i = 0; i < 31; ++i) {
         days[i] = malloc(3 * sizeof(char));
@@ -1045,19 +1145,34 @@ static void add_rdv_popup(GtkButton *btn, gpointer data) {
     }
     days[31] = NULL;
 
-    GtkStringList * day_model = gtk_string_list_new(days);
+    const char** hours = malloc(12 * sizeof(char*));
+    for (int i = 0; i < 11; ++i) {
+        hours[i] = malloc(3 * sizeof(char));
+        sprintf((char*)hours[i], "%dh", i + 8);
+    }
+    hours[11] = NULL;
+
     GtkWidget *year_dropdown = gtk_drop_down_new(G_LIST_MODEL(year_model), NULL);
     GtkWidget *month_dropdown = gtk_drop_down_new(G_LIST_MODEL(month_model), NULL);
+    GtkStringList * day_model = gtk_string_list_new(days);
     GtkWidget *day_dropdown = gtk_drop_down_new(G_LIST_MODEL(day_model), NULL);
+    GtkStringList * hour_model = gtk_string_list_new(hours);
+    GtkWidget *hour_dropdown = gtk_drop_down_new(G_LIST_MODEL(hour_model), NULL);
 
     gtk_box_append(GTK_BOX(dateBox), year_dropdown);
     gtk_box_append(GTK_BOX(dateBox), month_dropdown);
     gtk_box_append(GTK_BOX(dateBox), day_dropdown);
+    gtk_box_append(GTK_BOX(dateBox), hour_dropdown);
 
     for (int i = 0; i < 31; ++i) {
         free((char*)days[i]);
     }
     free(days);
+
+    for (int i = 0; i < 11; ++i) {
+        free((char*)hours[i]);
+    }
+    free(hours);
 
     GtkWidget *state_err_label = gtk_label_new("");
 
@@ -1065,17 +1180,18 @@ static void add_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(rdv_state_model), NULL);
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 10);
+    GtkWidget **widgets =  g_new(GtkWidget*, 11);
     widgets[0] = id_entry;
     widgets[1] = id_pt_entry;
     widgets[2] = year_dropdown;
     widgets[3] = month_dropdown;
     widgets[4] = day_dropdown;
-    widgets[5] = state_dropdown;
-    widgets[6] = id_err_label;
-    widgets[7] = id_pt_err_label;
-    widgets[8] = date_err_label;
-    widgets[9] = state_err_label;
+    widgets[5] = hour_dropdown;
+    widgets[6] = state_dropdown;
+    widgets[7] = id_err_label;
+    widgets[8] = id_pt_err_label;
+    widgets[9] = date_err_label;
+    widgets[10] = state_err_label;
 
     // Create the buttons
     GtkWidget *add_btn = gtk_button_new_with_label("ajouter");
@@ -1107,8 +1223,8 @@ static void add_rdv_popup(GtkButton *btn, gpointer data) {
 
 static void g_delete_rdv(GtkButton *btn, gpointer data) {
     int *id_value = data;
-    printf("Consultation with id: %d have been deleted\n", *id_value);
-    deleteConsultation(*id_value);
+    printf("RV with id: %d have been deleted\n", *id_value);
+    cancelRV(*id_value);
 }
 
 static void delete_rdv_popup(GtkButton *btn, gpointer data) {
@@ -1121,7 +1237,7 @@ static void delete_rdv_popup(GtkButton *btn, gpointer data) {
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
     char msg[100];
-    sprintf(msg, "are you sure about deleting this consultation (%d)", *id);
+    sprintf(msg, "are you sure about deleting this rendezvous (ID: %d)", *id);
 
     GtkWidget *msg_label = gtk_label_new(msg);
     GtkWidget *del_btn = gtk_button_new_with_label("supprimer");
@@ -1131,7 +1247,7 @@ static void delete_rdv_popup(GtkButton *btn, gpointer data) {
     gtk_box_append(GTK_BOX(box), del_btn);
     gtk_box_append(GTK_BOX(box), cancel_btn);
 
-    g_signal_connect(del_btn, "clicked", G_CALLBACK(g_delete_consult), data);
+    g_signal_connect(del_btn, "clicked", G_CALLBACK(g_delete_rdv), data);
     g_signal_connect(del_btn, "clicked", G_CALLBACK(window_close), GTK_WIDGET(popup_window));
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WIDGET(popup_window));
 
@@ -1146,209 +1262,278 @@ static void g_edit_rdv(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_id_rdv = GTK_ENTRY(widgets[0]);
     GtkEntry *entry_id_patient = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[3]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[4]);
+    GtkDropDown *year_dropdown = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *month_dropdown = GTK_DROP_DOWN(widgets[3]);
+    GtkDropDown *day_dropdown = GTK_DROP_DOWN(widgets[4]);
+    GtkDropDown *hour_dropdown = GTK_DROP_DOWN(widgets[5]);
+    GtkDropDown *state_dropdown = GTK_DROP_DOWN(widgets[6]);
 
     //Labels
-    GtkLabel *label_id_patient = GTK_LABEL(widgets[5]);
-    GtkLabel *label_symptoms = GTK_LABEL(widgets[6]);
-    GtkLabel *label_diagnosis = GTK_LABEL(widgets[7]);
-    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[8]);
+    GtkLabel *label_id_rdv = GTK_LABEL(widgets[7]);
+    GtkLabel *label_id_pt = GTK_LABEL(widgets[8]);
+    GtkLabel *label_date = GTK_LABEL(widgets[9]);
+    GtkLabel *label_state = GTK_LABEL(widgets[10]);
 
-    if (!entry_id_consult || !entry_id_patient || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
+    if (!entry_id_rdv || !entry_id_patient || !year_dropdown || !month_dropdown || !day_dropdown || !hour_dropdown) {
         g_printerr("Error: One of the entries is NULL\n");
         return;
     }
 
     // Retrieve values from each entry
-    int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_consult));
+    int rdv_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
-    const char* symptoms = get_text_from_entry(GTK_WIDGET(entry_symptoms));
-    const char* diagnosis = get_text_from_entry(GTK_WIDGET(entry_diagnosis));
-    const char* treatmentPlan = get_text_from_entry(GTK_WIDGET(entry_treatmentPlan));
+    const char* rdv_year = get_dropdown_item(year_dropdown);
+    int year = strtol(rdv_year, NULL, 10);
+    const char* rdv_month = get_dropdown_item(month_dropdown);
+    int month = find_month_index(rdv_month);
+    const char* rdv_day = get_dropdown_item(day_dropdown);
+    int day = strtol(rdv_day, NULL, 10);
+    const char* rdv_hour = get_dropdown_item(hour_dropdown);
+    int hour = atoi(rdv_hour);
+    const char* rdv_state = get_dropdown_item(state_dropdown);
 
     if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_id_patient, "CIN can only contain letters and numbers ([A-Za-z][0-9]) ()!");
-    } else {
-        gtk_label_set_text(label_id_patient, "");
+        gtk_label_set_text(label_id_pt, "CIN can only contain letters and numbers ([A-Za-z][0-9]) ()!");
+        return;
+    }
+    gtk_label_set_text(label_id_pt, "");
+
+
+    if (!isDateValid(year, month, day)) {
+        gtk_label_set_text(label_date, "Date chosen is not valid");
+        return;
+    }
+    gtk_label_set_text(label_state, "");
+
+    if (!isHourValid(hour)) {
+        printf("Invalid hour\n");
+        return;
     }
 
-    if (!isTextValid(symptoms)) {
-        gtk_label_set_text(label_symptoms, "symptoms should not left empty!");
-    } else {
-        gtk_label_set_text(label_symptoms, "");
-    }
-
-    if (!isTextValid(diagnosis)) {
-        gtk_label_set_text(label_diagnosis, "diagnosis should not left empty!");
-    } else {
-        gtk_label_set_text(label_diagnosis, "");
-    }
-
-    if (!isTextValid(treatmentPlan)) {
-        gtk_label_set_text(label_treatmentPlan, "treatment plan should not left empty!");
-    } else {
-        gtk_label_set_text(label_treatmentPlan, "");
-    }
-
-    if (consult_id != 0 && isCinValid(patient_id) && isTextValid(symptoms) && isTextValid(diagnosis) && isTextValid(treatmentPlan)) {
-        Consult consult;
-        consult.id = consult_id;
-        strcpy(consult.id_pt, patient_id);
-        strcpy(consult.symptoms, symptoms);
-        strcpy(consult.diagnosis, diagnosis);
-        strcpy(consult.treatmentPlan, treatmentPlan);
-        if (ifPatientExists(patient_id)){
-            modifyConsultation(consult);
-            // note that the time is not fixed yet !!!
+    if (rdv_id != 0) {
+        Rendezvous rendezvous;
+        rendezvous.id = rdv_id;
+        strcpy(rendezvous.id_pt, patient_id);
+        rendezvous.day = day;
+        rendezvous.month = month;
+        rendezvous.year = year;
+        rendezvous.hour = hour;
+        strcpy(rendezvous.state, rdv_state);
+        if (is_holiday(rendezvous)) {
+            printf("Invalid Rendezvous: it's a holiday\n");
+            return;
+        }
+        if (is_weekend(rendezvous)) {
+            printf("Invalid Rendezvous: it's weekend\n");
+            return;
+        }
+        if (ifPatientExists(patient_id)) {
+            modifyRV(rendezvous);
+            // displayAllRVs();
         } else {
-            printf("Patient ID does not exist\n");
+            g_printerr("Patient with ID: %s does not exist\n", patient_id);
         }
     } else {
-        g_printerr("Error: Consultation information are not correct\n");
+        g_printerr("Error: Rendezvous is NULL\n");
     }
 }
 
 static void edit_rdv_popup(GtkButton *btn, gpointer data) {
-    const Consult *consult = data;
+    const Rendezvous *RV = data;
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "Ajouter une consultation");
+    gtk_window_set_title(GTK_WINDOW(popup_window), "modifier un rendezvous");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
+    GtkWidget *id_err_label = gtk_label_new("");
+
     GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Consult Id");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Rendezvous Id");
     char id_text[10];
-    sprintf(id_text, "%d", consult->id);
+    sprintf(id_text, "%d", RV->id);
     set_text_entry(id_entry, id_text);
 
     GtkWidget *id_pt_err_label = gtk_label_new("");
 
     GtkWidget *id_pt_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient CIN");
-    set_text_entry(id_pt_entry, consult->id_pt);
+    set_text_entry(id_pt_entry, RV->id_pt);
 
-    GtkWidget *symptoms_err_label = gtk_label_new("");
+    GtkWidget *date_err_label = gtk_label_new("");
 
-    GtkWidget *symptoms_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(symptoms_entry), "Symptoms");
-    set_text_entry(symptoms_entry, consult->symptoms);
+    GtkWidget *dateBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
 
-    GtkWidget *diagnosis_err_label = gtk_label_new("");
+    const char * years[] = {"2024", "2025", "2026", "2027", "2028", "2029", NULL};
+    GtkStringList *year_model = gtk_string_list_new(years);
 
-    GtkWidget *diagnosis_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(diagnosis_entry), "Diagnosis");
-    set_text_entry(diagnosis_entry, consult->diagnosis);
+    const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL};
+    GtkStringList * month_model = gtk_string_list_new(months);
 
-    GtkWidget *treatmentPlan_err_label = gtk_label_new("");
+    const char** days = malloc(32 * sizeof(char*));
+    for (int i = 0; i < 31; ++i) {
+        days[i] = malloc(3 * sizeof(char));
+        sprintf((char*)days[i], "%d", i + 1);
+    }
+    days[31] = NULL;
 
-    GtkWidget *treatmentPlan_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
-    set_text_entry(treatmentPlan_entry, consult->treatmentPlan);
+    const char** hours = malloc(12 * sizeof(char*));
+    for (int i = 0; i < 11; ++i) {
+        hours[i] = malloc(3 * sizeof(char));
+        sprintf((char*)hours[i], "%dh", i + 8);
+    }
+    hours[11] = NULL;
+
+    char year_str[3];
+    sprintf(year_str, "%d", RV->year);
+    int year_pos = find_year_index(year_str);
+
+    char hour_str[3];
+    sprintf(hour_str, "%d", RV->hour);
+    int hour_pos = find_hour_index(hour_str);
 
 
-    GtkWidget **widget =  g_new(GtkWidget*, 9);
-    widget[0] = id_entry;
-    widget[1] = id_pt_entry;
-    widget[2] = symptoms_entry;
-    widget[3] = diagnosis_entry;
-    widget[4] = treatmentPlan_entry;
-    widget[5] = id_pt_err_label;
-    widget[6] = symptoms_err_label;
-    widget[7] = diagnosis_err_label;
-    widget[8] = treatmentPlan_err_label;
+    GtkWidget *year_dropdown = gtk_drop_down_new(G_LIST_MODEL(year_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(year_dropdown),year_pos);
+
+    GtkWidget *month_dropdown = gtk_drop_down_new(G_LIST_MODEL(month_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(month_dropdown),RV->month-1);
+    GtkStringList * day_model = gtk_string_list_new(days);
+
+    GtkWidget *day_dropdown = gtk_drop_down_new(G_LIST_MODEL(day_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(day_dropdown),RV->day-1);
+    GtkStringList * hour_model = gtk_string_list_new(hours);
+
+    GtkWidget *hour_dropdown = gtk_drop_down_new(G_LIST_MODEL(hour_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(hour_dropdown),hour_pos);
+
+    gtk_box_append(GTK_BOX(dateBox), year_dropdown);
+    gtk_box_append(GTK_BOX(dateBox), month_dropdown);
+    gtk_box_append(GTK_BOX(dateBox), day_dropdown);
+    gtk_box_append(GTK_BOX(dateBox), hour_dropdown);
+
+    for (int i = 0; i < 31; ++i) {
+        free((char*)days[i]);
+    }
+    free(days);
+
+    for (int i = 0; i < 11; ++i) {
+        free((char*)hours[i]);
+    }
+    free(hours);
+
+    GtkWidget *state_err_label = gtk_label_new("");
+
+    GtkStringList * rdv_state_model = gtk_string_list_new((const char *[]){"Pending", "Cancelled", "Confirmed", NULL});
+
+    GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(rdv_state_model), NULL);
+
+    GtkWidget **widgets =  g_new(GtkWidget*, 11);
+    widgets[0] = id_entry;
+    widgets[1] = id_pt_entry;
+    widgets[2] = year_dropdown;
+    widgets[3] = month_dropdown;
+    widgets[4] = day_dropdown;
+    widgets[5] = hour_dropdown;
+    widgets[6] = state_dropdown;
+    widgets[7] = id_err_label;
+    widgets[8] = id_pt_err_label;
+    widgets[9] = date_err_label;
+    widgets[10] = state_err_label;
 
 
     // Create the buttons
-    GtkWidget *add_btn = gtk_button_new_with_label("modifier");
+    GtkWidget *edit_btn = gtk_button_new_with_label("modifier");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
     // Connect the cancel button to close the window
-    g_signal_connect(add_btn, "clicked", G_CALLBACK(g_edit_consult), widget);
+    g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_rdv), widgets);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
+    gtk_box_append(GTK_BOX(box), id_err_label);
     gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_pt_err_label);
     gtk_box_append(GTK_BOX(box), id_pt_entry);
-    gtk_box_append(GTK_BOX(box), symptoms_err_label);
-    gtk_box_append(GTK_BOX(box), symptoms_entry);
-    gtk_box_append(GTK_BOX(box), diagnosis_err_label);
-    gtk_box_append(GTK_BOX(box), diagnosis_entry);
-    gtk_box_append(GTK_BOX(box), treatmentPlan_err_label);
-    gtk_box_append(GTK_BOX(box), treatmentPlan_entry);
-    gtk_box_append(GTK_BOX(box), add_btn);
+    gtk_box_append(GTK_BOX(box), date_err_label);
+    gtk_box_append(GTK_BOX(box), dateBox);
+    gtk_box_append(GTK_BOX(box), state_err_label);
+    gtk_box_append(GTK_BOX(box), state_dropdown);
+    gtk_box_append(GTK_BOX(box), edit_btn);
     gtk_box_append(GTK_BOX(box), cancel_btn);
 
     // Show the popup window
     gtk_window_present(GTK_WINDOW(popup_window));
 }
 
-// static void g_update_display_rdv(GtkButton *btn, gpointer data) {
-//     Rendezvous *rdvs = getRVs();
-//     int rdv_count = getNumbOfRVs();
-//     // printf("Total Consultation: %d\n", consult_count);
-//     // displayAllConsultation();
-//
-//     GtkGrid *grid = GTK_GRID(data);
-//
-//     int col= 0, row = 2;
-//     while (gtk_grid_get_child_at(grid, col, row) != NULL) {
-//         while (col < 4) {
-//             GtkWidget *child = gtk_grid_get_child_at(grid, col, row);
-//             if (child != NULL) {
-//                 gtk_widget_unparent(child);
-//             }
-//             col++;
-//         }
-//         row++;
-//         col = 0;
-//     }
-//
-//     for (int i = 0; i < rdv_count; i++) {
-//         char id_text[10];
-//
-//         snprintf(id_text, sizeof(id_text), "%d", rdvs[i].id);
-//
-//         GtkWidget *id_label = gtk_label_new(id_text);
-//         GtkWidget *id_pt_label = gtk_label_new(rdvs[i].id_pt);
-//         Patient* patient = getPatient(rdvs[i].id_pt);
-//         if (patient == NULL) {
-//             printf("Patient with ID %s not found\n", rdvs[i].id_pt);
-//             continue;
-//         }
-//
-//         char fullName_pt[40];
-//         snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", patient->lName, patient->fName);
-//
-//         GtkWidget *name_label = gtk_label_new(fullName_pt);
-//         GtkWidget *symptoms_label = gtk_label_new(rdvs[i].date);
-//         GtkWidget *diagnosis_label = gtk_label_new(rdvs[i].diagnosis);
-//         GtkWidget *treatmentPlan_label = gtk_label_new(rdvs[i].treatmentPlan);
-//         GtkWidget *edit_btn = gtk_button_new_with_label("edit");
-//         GtkWidget *delete_btn = gtk_button_new_with_label("delete");
-//
-//         // Attach labels to the grid for each row of patient data
-//         gtk_grid_attach(grid, id_label, 0, i + 2, 1, 1);
-//         gtk_grid_attach(grid, id_pt_label, 1, i + 2, 1, 1);
-//         gtk_grid_attach(grid, name_label, 2, i + 2, 1, 1);
-//         gtk_grid_attach(grid, symptoms_label, 3, i + 2, 1, 1);
-//         gtk_grid_attach(grid, diagnosis_label, 4, i + 2, 1, 1);
-//         gtk_grid_attach(grid, treatmentPlan_label, 5, i + 2, 1, 1);
-//         gtk_grid_attach(grid, edit_btn, 6, i + 2, 1, 1);
-//         gtk_grid_attach(grid, delete_btn, 7, i + 2, 1, 1);
-//
-//         g_signal_connect(delete_btn, "clicked", G_CALLBACK(delete_rdv_popup), &rdvs[i].id);
-//         g_signal_connect(edit_btn, "clicked", G_CALLBACK(edit_rdv_popup), &rdvs[i]);
-//     }
-// }
+static void g_update_display_rdv(GtkButton *btn, gpointer data) {
+
+    Rendezvous *RVs = getRVs();
+    int rdv_count = getNumbOfRVs();
+    displayAllRVs();
+    GtkGrid *grid = GTK_GRID(data);
+
+    int col= 0, row = 2;
+    while (gtk_grid_get_child_at(grid, col, row) != NULL) {
+        while (col < 8) {
+            GtkWidget *child = gtk_grid_get_child_at(grid, col, row);
+            if (child != NULL) {
+                gtk_widget_unparent(child);
+            }
+            col++;
+        }
+        row++;
+        col = 0;
+    }
+
+    for (int i = 0; i < rdv_count; i++) {
+        char id_text[10];
+
+        snprintf(id_text, sizeof(id_text), "%d", RVs[i].id);
+
+        GtkWidget *id_label = gtk_label_new(id_text);
+        GtkWidget *id_pt_label = gtk_label_new(RVs[i].id_pt);
+
+        Patient* patient = getPatient(RVs[i].id_pt);
+        if (patient == NULL) {
+            printf("Patient with ID %s not found\n", RVs[i].id_pt);
+            continue;
+        }
+        char fullName_pt[40];
+        snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", patient->lName, patient->fName);
+        GtkWidget *name_label = gtk_label_new(fullName_pt);
+
+        char date[12];
+        snprintf(date, sizeof(date), "%d/%d/%d", RVs[i].year, RVs[i].month, RVs[i].day);
+        GtkWidget *date_label = gtk_label_new(date);
+
+        char time[3];
+        snprintf(time, sizeof(time), "%dh", RVs[i].hour);
+        GtkWidget *hour_label = gtk_label_new(time);
+
+        GtkWidget *state_label = gtk_label_new(RVs[i].state);
+        GtkWidget *edit_btn = gtk_button_new_with_label("edit");
+        GtkWidget *delete_btn = gtk_button_new_with_label("delete");
+
+        // Attach labels to the grid for each row of patient data
+        gtk_grid_attach(grid, id_label, 0, i + 2, 1, 1);
+        gtk_grid_attach(grid, id_pt_label, 1, i + 2, 1, 1);
+        gtk_grid_attach(grid, name_label, 2, i + 2, 1, 1);
+        gtk_grid_attach(grid, date_label, 3, i + 2, 1, 1);
+        gtk_grid_attach(grid, hour_label, 4, i + 2, 1, 1);
+        gtk_grid_attach(grid, state_label, 5, i + 2, 1, 1);
+        gtk_grid_attach(grid, edit_btn, 6, i + 2, 1, 1);
+        gtk_grid_attach(grid, delete_btn, 7, i + 2, 1, 1);
+
+        g_signal_connect(delete_btn, "clicked", G_CALLBACK(delete_rdv_popup), &RVs[i].id);
+        g_signal_connect(edit_btn, "clicked", G_CALLBACK(edit_rdv_popup), &RVs[i]);
+    }
+}
 
 //===================================================================//
 // window creation & filling
@@ -1565,16 +1750,20 @@ static void set_rendezvous_win(GtkBuilder *builder, GObject **win) {
     // Define grid headers
     GtkWidget *id_header = gtk_label_new("Rendezvous ID");
     GtkWidget *id_pt_header = gtk_label_new("Patient ID");
+    GtkWidget *name_pt_header = gtk_label_new("Patient Name");
     GtkWidget *date_header = gtk_label_new("Date");
+    GtkWidget *time_header = gtk_label_new("Time");
     GtkWidget *state_header = gtk_label_new("state");
 
     // Add headers to the first row of the grid
     gtk_grid_attach(grid, id_header, 0, 1, 1, 1);
     gtk_grid_attach(grid, id_pt_header, 1, 1, 1, 1);
-    gtk_grid_attach(grid, date_header, 2, 1, 1, 1);
-    gtk_grid_attach(grid, state_header, 3, 1, 1, 1);
+    gtk_grid_attach(grid, name_pt_header, 2, 1, 1, 1);
+    gtk_grid_attach(grid, date_header, 3, 1, 1, 1);
+    gtk_grid_attach(grid, time_header, 4, 1, 1, 1);
+    gtk_grid_attach(grid, state_header, 5, 1, 1, 1);
 
-    // g_update_display_rdv(NULL, grid);
+    g_update_display_rdv(NULL, grid);
 
     // Create and attach buttons after the last row of patient data
     GObject *refresh_rendezvous_btn = gtk_builder_get_object(builder, "refresh_rendezvous_btn");
@@ -1582,7 +1771,7 @@ static void set_rendezvous_win(GtkBuilder *builder, GObject **win) {
     GObject *return_rendezvous_btn = gtk_builder_get_object(builder, "return_rendezvous_btn");
 
     // Connect button signals to their respective callbacks
-    // g_signal_connect(refresh_rendezvous_btn, "clicked", G_CALLBACK(g_update_display_rdv), grid);
+    g_signal_connect(refresh_rendezvous_btn, "clicked", G_CALLBACK(g_update_display_rdv), grid);
     g_signal_connect(add_rendezvous_btn,"clicked", G_CALLBACK(add_rdv_popup), NULL);
     g_signal_connect(return_rendezvous_btn, "clicked", G_CALLBACK(switch_to_menu), win);
 }

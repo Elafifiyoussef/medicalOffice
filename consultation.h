@@ -23,7 +23,7 @@ void displayConsultation(Consult *consult);
 void displayAllConsultation();
 Consult* getConsultation(int id);
 Consult* getConsultations();
-Consult* getConsultsByCin(char *pt_id);
+Consult* getConsultsByCin(char *cin);
 int ifConsultExists(int id);
 int getNumbOfConsults();
 

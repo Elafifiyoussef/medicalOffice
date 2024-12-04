@@ -2,6 +2,7 @@
 #define RENDEZVOUS_H
 
 #define MAX_CIN_LENGTH 10
+#define max_STATE_LENGTH 15
 
 typedef struct {
     int id;
@@ -10,20 +11,22 @@ typedef struct {
     int month;
     int year;
     int hour;
+    char state[MAX_CIN_LENGTH];
 } Rendezvous;
 
 void addRV(Rendezvous RV);
-void displayRV(const char *filename, int id);
-void displayAllRV();
+void displayRV(Rendezvous RV);
+void displayAllRVs();
 void modifyRV(Rendezvous RV);
-int cancelRV(Rendezvous RV);
+void cancelRV(int id);
 Rendezvous* getRV(int RV);
 Rendezvous* getRVs();
 Rendezvous* getRVbyCin(char *cin);
 int is_holiday(Rendezvous RV);
 int is_weekend(Rendezvous RV);
-int isRVExists(int id);
+int ifRVExists(int id);
 int getNumbOfRVs();
+int getRVpos(Rendezvous RV);
 int get_last_id(const char *filename);
 
-#endif // RENDEZVOUS_H
+#endif

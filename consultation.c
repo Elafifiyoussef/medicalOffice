@@ -160,7 +160,7 @@ Consult* getConsultations() {
     return consults;
 }
 
-Consult* getConsultsByCin(char *pt_id) {
+Consult* getConsultsByCin(char *cin) {
     FILE *file = fopen("consultation.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -172,7 +172,7 @@ Consult* getConsultsByCin(char *pt_id) {
     int count = 0;
 
     while (fread(&buffer, sizeof(Consult), 1, file)) {
-        if (strcmp(pt_id, buffer.id_pt) == 0) {
+        if (strcmp(cin, buffer.id_pt) == 0) {
             Consult *temp = realloc(consults, (count + 1) * sizeof(Consult));
             if (temp == NULL) {
                 printf("Memory allocation failed\n");
@@ -189,7 +189,7 @@ Consult* getConsultsByCin(char *pt_id) {
     fclose(file);
 
     if (count == 0) {
-        printf("No consultations found for patient ID: %s\n", pt_id);
+        printf("No consultations found for patient ID: %s\n", cin);
         return NULL;
     }
 

@@ -26,7 +26,7 @@ void displayAllPatients() {
     if (file == NULL) {
         printf("File not found\n");
     }
-    Patient patient = {0};
+    Patient patient;
 
     while (fread(&patient, sizeof(Patient), 1, file) == 1) {
         displayPatient(patient);
@@ -41,7 +41,7 @@ void deletePatient(char *cin_id) {
         return;
     }
 
-    Patient patient = {0};
+    Patient patient;
     int found = 0;
 
     FILE *temp = fopen("temp.bin","wb");
