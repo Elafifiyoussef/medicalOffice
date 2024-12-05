@@ -243,4 +243,49 @@
         </child>
     </object>
 
+<!--Payment Window-->
+    <object id="paymentWindow" class="GtkApplicationWindow">
+        <property name="title">Afficher les rendez-vous</property>
+        <child>
+            <object id="grid_payment" class="GtkGrid">
+                <property name="row-spacing">30</property>
+                <property name="column-spacing">20</property>
+
+                <child>
+                    <object id="refresh_payment_btn" class="GtkButton">
+                        <property name="label">actualiser</property>
+                        <layout>
+                            <property name="column">4</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="add_payment_btn" class="GtkButton">
+                        <property name="label">ajouter</property>
+                        <layout>
+                            <property name="column">5</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="return_payment_btn" class="GtkButton">
+                        <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
 </interface>

@@ -6,6 +6,8 @@
 #include "rendezvous.h"
 #include <regex.h>
 
+#include "payment_management.h"
+
 static void window_close(GtkButton btn, GtkWindow *window) {
     gtk_window_close(window);
 }
@@ -40,6 +42,13 @@ static int get_int_from_entry(GtkWidget *entry) {
     GtkEntryBuffer *entryBuffer = gtk_entry_get_buffer(GTK_ENTRY(entry));
     const char* string = gtk_entry_buffer_get_text(entryBuffer);
     const int value = strtol(string, NULL, 10);
+    return value;
+}
+
+static double get_double_from_entry(GtkWidget *entry) {
+    GtkEntryBuffer *entryBuffer = gtk_entry_get_buffer(GTK_ENTRY(entry));
+    const char* string = gtk_entry_buffer_get_text(entryBuffer);
+    const double value = strtod(string, NULL);
     return value;
 }
 
@@ -1321,6 +1330,7 @@ static void g_edit_rdv(GtkButton *btn, gpointer data) {
         rendezvous.year = year;
         rendezvous.hour = hour;
         strcpy(rendezvous.state, rdv_state);
+
         if (is_holiday(rendezvous)) {
             printf("Invalid Rendezvous: it's a holiday\n");
             return;
@@ -1536,6 +1546,392 @@ static void g_update_display_rdv(GtkButton *btn, gpointer data) {
 }
 
 //===================================================================//
+// Payment functionalities
+//===================================================================//
+
+static void g_add_payment(GtkButton *btn, gpointer data) {
+    GtkWidget **widgets = data;
+    if (!widgets) {
+        g_printerr("Error: widgets is NULL\n");
+        return;
+    }
+
+    //Entries
+    GtkEntry *entry_payment_id = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_consult_id = GTK_ENTRY(widgets[1]);
+    GtkEntry *entry_pt_id = GTK_ENTRY(widgets[2]);
+    GtkEntry *entry_amount = GTK_ENTRY(widgets[3]);
+    //Labels
+    GtkLabel *label_payment_id = GTK_LABEL(widgets[4]);
+    GtkLabel *label_consult_id = GTK_LABEL(widgets[5]);
+    GtkLabel *label_pt_id = GTK_LABEL(widgets[6]);
+    GtkLabel *label_date = GTK_LABEL(widgets[7]);
+
+    if (!entry_payment_id && !entry_consult_id && !entry_pt_id && !entry_amount) {
+        g_printerr("Error: One of the entries is NULL\n");
+        return;
+    }
+
+    // Retrieve values from each entry
+    int payment_id = get_int_from_entry(GTK_WIDGET(entry_payment_id));
+    int consult_id = get_int_from_entry(GTK_WIDGET(entry_consult_id));
+    const char *patient_id = get_text_from_entry(GTK_WIDGET(entry_pt_id));
+    double amount = get_double_from_entry(GTK_WIDGET(entry_amount));
+
+    if (!isCinValid(patient_id)) {
+        gtk_label_set_text(label_pt_id, "CIN can only contain letters and numbers ([A-Za-z][0-9]) ()!");
+        return;
+    }
+    gtk_label_set_text(label_pt_id, "");
+
+    if (payment_id && consult_id && patient_id )  {
+        Payment payment;
+        payment.id = payment_id;
+        payment.id_consult = consult_id;
+        strcpy(payment.id_pt, patient_id);
+        payment.amount = amount;
+        strcpy(payment.state, "pending");
+
+        if (ifPaymentExists(payment_id)) {
+            g_printerr("Payment with ID: %d already exists\n", payment_id);
+            return;
+        }
+
+        if (!ifPatientExists(patient_id)) {
+            g_printerr("Patient with ID: %s does not exist\n", patient_id);
+            return;
+        }
+
+        if (!ifConsultExists(consult_id)) {
+            g_printerr("Consulting with ID: %d does not exist\n", consult_id);
+            return;
+        }
+
+        addPayment(&payment);
+        displayAllPayments();
+    } else {
+        g_printerr("Error: Rendezvous is NULL\n");
+    }
+}
+
+static void add_payment_popup(GtkButton *btn, gpointer data) {
+    // Create the popup window
+    GtkWidget *popup_window = gtk_window_new();
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Ajouter un payment");
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
+
+    // Create a vertical box for layout
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+
+    GtkWidget *id_err_label = gtk_label_new("");
+    GtkWidget *id_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Payment Id");
+
+    GtkWidget *id_consult_err_label = gtk_label_new("");
+    GtkWidget *id_consult_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_consult_entry), "Consult Id");
+
+    GtkWidget *id_pt_err_label = gtk_label_new("");
+    GtkWidget *id_pt_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient Id (CIN)");
+
+    GtkWidget *amount_err_label = gtk_label_new("");
+    GtkWidget *amount_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(amount_entry), "Amount");
+
+    GtkWidget **widgets =  g_new(GtkWidget*, 8);
+    widgets[0] = id_entry;
+    widgets[1] = id_consult_entry;
+    widgets[2] = id_pt_entry;
+    widgets[3] = amount_entry;
+    widgets[4] = id_err_label;
+    widgets[5] = id_consult_err_label;
+    widgets[6] = id_pt_err_label;
+    widgets[7] = amount_err_label;
+
+    // Create the buttons
+    GtkWidget *add_btn = gtk_button_new_with_label("ajouter");
+    GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
+    // Connect the cancel button to close the window
+    g_signal_connect(add_btn, "clicked", G_CALLBACK(g_add_payment), widgets);
+    g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
+    // g_signal_connect(year_dropdown, "notify::selected", G_CALLBACK(on_year_changed), NULL);
+
+    // Append widgets to the box
+    gtk_box_append(GTK_BOX(box), id_err_label);
+    gtk_box_append(GTK_BOX(box), id_entry);
+    gtk_box_append(GTK_BOX(box), id_consult_err_label);
+    gtk_box_append(GTK_BOX(box), id_consult_entry);
+    gtk_box_append(GTK_BOX(box), id_pt_err_label);
+    gtk_box_append(GTK_BOX(box), id_pt_entry);
+    gtk_box_append(GTK_BOX(box), amount_err_label);
+    gtk_box_append(GTK_BOX(box), amount_entry);
+    gtk_box_append(GTK_BOX(box), add_btn);
+    gtk_box_append(GTK_BOX(box), cancel_btn);
+
+    // Show the popup window
+    gtk_window_present(GTK_WINDOW(popup_window));
+}
+
+static void g_delete_payment(GtkButton *btn, gpointer data) {
+    int *id_value = data;
+    printf("Payment with id: %d have been deleted\n", *id_value);
+    deletePayment(*id_value);
+}
+
+static void delete_payment_popup(GtkButton *btn, gpointer data) {
+    int* id = data;
+    GtkWidget *popup_window = gtk_window_new();
+    gtk_window_set_title(GTK_WINDOW(popup_window), "confirmer la suppression ");
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
+
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+
+    char msg[100];
+    sprintf(msg, "are you sure about deleting this payment (ID: %d)", *id);
+
+    GtkWidget *msg_label = gtk_label_new(msg);
+    GtkWidget *del_btn = gtk_button_new_with_label("supprimer");
+    GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
+    gtk_box_append(GTK_BOX(box), msg_label);
+    gtk_box_append(GTK_BOX(box), del_btn);
+    gtk_box_append(GTK_BOX(box), cancel_btn);
+
+    g_signal_connect(del_btn, "clicked", G_CALLBACK(g_delete_payment), data);
+    g_signal_connect(del_btn, "clicked", G_CALLBACK(window_close), GTK_WIDGET(popup_window));
+    g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WIDGET(popup_window));
+
+    gtk_window_present(GTK_WINDOW(popup_window));
+}
+
+static void g_edit_payment(GtkButton *btn, gpointer data) {
+    GtkWidget **widgets = data;
+    if (!widgets) {
+        g_printerr("Error: widgets is NULL\n");
+        return;
+    }
+
+    //Entries
+    GtkEntry *entry_id_payment = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[1]);
+    GtkEntry *entry_id_pt = GTK_ENTRY(widgets[2]);
+    GtkEntry *entry_amount = GTK_ENTRY(widgets[3]);
+    // Dropdowns
+    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[4]);
+    //Labels
+    GtkLabel *label_id_rdv = GTK_LABEL(widgets[5]);
+    GtkLabel *label_id_pt = GTK_LABEL(widgets[6]);
+    GtkLabel *label_date = GTK_LABEL(widgets[7]);
+    GtkLabel *label_state = GTK_LABEL(widgets[8]);
+
+    if (!entry_id_payment || !entry_id_consult || !entry_id_pt || !entry_amount ) {
+        g_printerr("Error: One of the entries is NULL\n");
+        return;
+    }
+
+    // Retrieve values from each entry
+    int payment_id = get_int_from_entry(GTK_WIDGET(entry_id_payment));
+    int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_consult));
+    const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_pt));
+    double amount = get_double_from_entry(GTK_WIDGET(entry_amount));
+    const char* state = get_dropdown_item(dropdown_state);
+
+    if (!isCinValid(patient_id)) {
+        gtk_label_set_text(label_id_pt, "CIN can only contain letters and numbers ([A-Za-z][0-9]) ()!");
+        return;
+    }
+    gtk_label_set_text(label_id_pt, "");
+
+
+    if (payment_id && consult_id && patient_id) {
+        Payment payment;
+        payment.id = payment_id;
+        payment.id_consult = consult_id;
+        strcpy(payment.id_pt, patient_id);
+        payment.amount = amount;
+        strcpy(payment.state, state);
+        payment.DateTime = getPayment(payment_id)->DateTime;
+
+        if (!ifPaymentExists(payment_id)) {
+            g_printerr("Payment with ID: %does not exists\n", payment_id);
+            return;
+        }
+        if (!ifPatientExists(patient_id)) {
+            g_printerr("Patient with ID: %s does not exist\n", patient_id);
+            return;
+        }
+
+        if (!ifConsultExists(consult_id)) {
+            g_printerr("Consulting with ID: %d does not exist\n", consult_id);
+            return;
+        }
+
+        modifyPayment(payment);
+        displayAllPayments();
+    } else {
+        g_printerr("Error: Rendezvous is NULL\n");
+    }
+}
+
+static void edit_payment_popup(GtkButton *btn, gpointer data) {
+    const Payment *payment = data;
+    // Create the popup window
+    GtkWidget *popup_window = gtk_window_new();
+    gtk_window_set_title(GTK_WINDOW(popup_window), "modifier un rendezvous");
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
+
+    // Create a vertical box for layout
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+
+    GtkWidget *id_err_label = gtk_label_new("");
+    GtkWidget *id_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Payment Id");
+    char id_text[10];
+    sprintf(id_text, "%d", payment->id);
+    set_text_entry(id_entry, id_text);
+
+    GtkWidget *id_consult_err_label = gtk_label_new("");
+    GtkWidget *id_consult_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_consult_entry), "Consult Id");
+    char id_consult_text[10];
+    sprintf(id_consult_text, "%d", payment->id_consult);
+    set_text_entry(id_consult_entry, id_consult_text);
+
+    GtkWidget *id_pt_err_label = gtk_label_new("");
+    GtkWidget *id_pt_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient Id (CIN)");
+    set_text_entry(id_pt_entry, payment->id_pt);
+
+    GtkWidget *amount_err_label = gtk_label_new("");
+    GtkWidget *amount_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(amount_entry), "Amount");
+    char amount_text[10];
+    sprintf(amount_text, "%.2lf", payment->amount);
+    set_text_entry(amount_entry, amount_text);
+
+    GtkWidget *state_err_label = gtk_label_new("");
+    GtkStringList * state_model = gtk_string_list_new((const char *[]){"Pending", "Cancelled", "Confirmed", NULL});
+    GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(state_model), NULL);
+
+
+    GtkWidget **widgets =  g_new(GtkWidget*, 9);
+    widgets[0] = id_entry;
+    widgets[1] = id_consult_entry;
+    widgets[2] = id_pt_entry;
+    widgets[3] = amount_entry;
+    widgets[4] = state_dropdown;
+    widgets[5] = id_err_label;
+    widgets[6] = id_consult_err_label;
+    widgets[7] = id_pt_err_label;
+    widgets[8] = amount_err_label;
+
+
+    // Create the buttons
+    GtkWidget *edit_btn = gtk_button_new_with_label("modifier");
+    GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
+    // Connect the cancel button to close the window
+    g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_payment), widgets);
+    g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
+
+    // Append widgets to the box
+    gtk_box_append(GTK_BOX(box), id_err_label);
+    gtk_box_append(GTK_BOX(box), id_entry);
+    gtk_box_append(GTK_BOX(box), id_consult_err_label);
+    gtk_box_append(GTK_BOX(box), id_consult_entry);
+    gtk_box_append(GTK_BOX(box), id_pt_err_label);
+    gtk_box_append(GTK_BOX(box), id_pt_entry);
+    gtk_box_append(GTK_BOX(box), amount_err_label);
+    gtk_box_append(GTK_BOX(box), amount_entry);
+    gtk_box_append(GTK_BOX(box), state_dropdown);
+    gtk_box_append(GTK_BOX(box), edit_btn);
+    gtk_box_append(GTK_BOX(box), cancel_btn);
+
+    // Show the popup window
+    gtk_window_present(GTK_WINDOW(popup_window));
+}
+
+static void g_update_display_payment(GtkButton *btn, gpointer data) {
+
+    Payment *payments = getPayments();
+    int payment_count = getNumbOfPayments();
+    displayAllPayments();
+    GtkGrid *grid = GTK_GRID(data);
+
+    int col= 0, row = 2;
+    while (gtk_grid_get_child_at(grid, col, row) != NULL) {
+        while (col < 10) {
+            GtkWidget *child = gtk_grid_get_child_at(grid, col, row);
+            if (child != NULL) {
+                gtk_widget_unparent(child);
+            }
+            col++;
+        }
+        row++;
+        col = 0;
+    }
+
+    for (int i = 0; i < payment_count; i++) {
+        char id_payment_text[10];
+        snprintf(id_payment_text, sizeof(id_payment_text), "%d", payments[i].id);
+        GtkWidget *id_payment_label = gtk_label_new(id_payment_text);
+
+        char id_consult_text[10];
+        snprintf(id_consult_text, sizeof(id_consult_text), "%d", payments[i].id);
+        GtkWidget *id_consult_label = gtk_label_new(id_consult_text);
+
+        GtkWidget *id_pt_label = gtk_label_new(payments[i].id_pt);
+
+        Patient* patient = getPatient(payments[i].id_pt);
+        if (patient == NULL) {
+            printf("Patient with ID %s not found\n", payments[i].id_pt);
+            continue;
+        }
+        char fullName_pt[40];
+        snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", patient->lName, patient->fName);
+        GtkWidget *name_label = gtk_label_new(fullName_pt);
+
+        char amount[10];
+        snprintf(amount, sizeof(amount), "%.2lf", payments[i].amount);
+        GtkWidget *amount_label = gtk_label_new(amount);
+
+        char date[10];
+        struct tm tm = *localtime(&payments[i].DateTime);
+        snprintf(date, sizeof(date), "%d/%d/%d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+        GtkWidget *date_label = gtk_label_new(date);
+
+        char time[3];
+        snprintf(time, sizeof(time), "%dh", tm.tm_hour);
+        GtkWidget *hour_label = gtk_label_new(time);
+
+        GtkWidget *state_label = gtk_label_new(payments[i].state);
+
+        GtkWidget *edit_btn = gtk_button_new_with_label("edit");
+        GtkWidget *delete_btn = gtk_button_new_with_label("delete");
+
+        // Attach labels to the grid for each row of patient data
+        gtk_grid_attach(grid, id_payment_label, 0, i + 2, 1, 1);
+        gtk_grid_attach(grid, id_consult_label, 1, i + 2, 1, 1);
+        gtk_grid_attach(grid, id_pt_label, 2, i + 2, 1, 1);
+        gtk_grid_attach(grid, name_label, 3, i + 2, 1, 1);
+        gtk_grid_attach(grid, amount_label, 4, i + 2, 1, 1);
+        gtk_grid_attach(grid, date_label, 5, i + 2, 1, 1);
+        gtk_grid_attach(grid, hour_label, 6, i + 2, 1, 1);
+        gtk_grid_attach(grid, state_label, 7, i + 2, 1, 1);
+        gtk_grid_attach(grid, edit_btn, 8, i + 2, 1, 1);
+        gtk_grid_attach(grid, delete_btn, 9, i + 2, 1, 1);
+
+        g_signal_connect(delete_btn, "clicked", G_CALLBACK(delete_payment_popup), &payments[i].id);
+        g_signal_connect(edit_btn, "clicked", G_CALLBACK(edit_payment_popup), &payments[i]);
+    }
+}
+
+//===================================================================//
 // window creation & filling
 //===================================================================//
 
@@ -1573,6 +1969,13 @@ static GObject** init_GObj_win(GtkBuilder *builder) {
     wins[4] = gtk_builder_get_object(builder, "rendezvousWindow");
     if (!wins[4]) {
         g_printerr("Failed to get 'Rendezvous' window from builder UI file\n");
+        g_free(wins);
+        return NULL;
+    }
+
+    wins[5] = gtk_builder_get_object(builder, "paymentWindow");
+    if (!wins[5]) {
+        g_printerr("Failed to get 'payment' window from builder UI file\n");
         g_free(wins);
         return NULL;
     }
@@ -1634,6 +2037,17 @@ static void switch_to_rendezvous(GtkButton *btn, gpointer user_data) {
     }
 }
 
+static void switch_to_payment(GtkButton *btn, gpointer user_data) {
+    GObject **windows = (GObject **)user_data;
+    GtkWidget *window_payment = GTK_WIDGET(windows[5]);
+    GtkWidget *window_prev = gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW);
+
+    if (GTK_IS_WINDOW(window_prev)) {
+        gtk_widget_set_visible(window_prev, FALSE);
+        gtk_widget_set_visible(window_payment, TRUE);
+    }
+}
+
 // set windows objects
 static void set_login_win_objs(GtkBuilder *builder, GObject **win) {
 
@@ -1658,6 +2072,7 @@ static void set_login_win_objs(GtkBuilder *builder, GObject **win) {
     g_signal_connect(button_login, "clicked", G_CALLBACK(switch_to_menu), win);
 }
 
+// set menu windows objects
 static void set_menu_win_objs(GtkBuilder *builder, GObject **win) {
 
     GObject *btn_patient = gtk_builder_get_object(builder, "btn_patient");
@@ -1669,7 +2084,7 @@ static void set_menu_win_objs(GtkBuilder *builder, GObject **win) {
     g_signal_connect(btn_patient, "clicked", G_CALLBACK(switch_to_patient), win);
     g_signal_connect(btn_rdv, "clicked", G_CALLBACK(switch_to_rendezvous), win);
     g_signal_connect(btn_consult, "clicked", G_CALLBACK(switch_to_consult), win);
-    g_signal_connect(btn_payment, "clicked", G_CALLBACK(print_btn_name), NULL);
+    g_signal_connect(btn_payment, "clicked", G_CALLBACK(switch_to_payment), win);
     g_signal_connect(btn_out, "clicked", G_CALLBACK(switch_to_login), win);
 }
 
@@ -1776,6 +2191,43 @@ static void set_rendezvous_win(GtkBuilder *builder, GObject **win) {
     g_signal_connect(return_rendezvous_btn, "clicked", G_CALLBACK(switch_to_menu), win);
 }
 
+// set payment windows objects
+static void set_payment_win(GtkBuilder *builder, GObject **win) {
+    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "grid_payment"));
+
+    // Define grid headers
+    GtkWidget *id_header = gtk_label_new("Payment ID");
+    GtkWidget *id_consult_header = gtk_label_new("Consultation ID");
+    GtkWidget *id_pt_header = gtk_label_new("Patient ID");
+    GtkWidget *name_pt_header = gtk_label_new("Patient Name");
+    GtkWidget *amount_header = gtk_label_new("Amount");
+    GtkWidget *date_header = gtk_label_new("Date");
+    GtkWidget *hour_header = gtk_label_new("Hour");
+    GtkWidget *state_header = gtk_label_new("State");
+
+    // Add headers to the first row of the grid
+    gtk_grid_attach(grid, id_header, 0, 1, 1, 1);
+    gtk_grid_attach(grid, id_consult_header, 1, 1, 1, 1);
+    gtk_grid_attach(grid, id_pt_header, 2, 1, 1, 1);
+    gtk_grid_attach(grid, name_pt_header, 3, 1, 1, 1);
+    gtk_grid_attach(grid, amount_header, 4, 1, 1, 1);
+    gtk_grid_attach(grid, date_header, 5, 1, 1, 1);
+    gtk_grid_attach(grid, hour_header, 6, 1, 1, 1);
+    gtk_grid_attach(grid, state_header, 7, 1, 1, 1);
+
+    g_update_display_payment(NULL, grid);
+
+    // Create and attach buttons after the last row of patient data
+    GObject *refresh_payment_btn = gtk_builder_get_object(builder, "refresh_payment_btn");
+    GObject *add_payment_btn = gtk_builder_get_object(builder, "add_payment_btn");
+    GObject *return_payment_btn = gtk_builder_get_object(builder, "return_payment_btn");
+
+    // Connect button signals to their respective callbacks
+    g_signal_connect(refresh_payment_btn, "clicked", G_CALLBACK(g_update_display_payment), grid);
+    g_signal_connect(add_payment_btn,"clicked", G_CALLBACK(add_payment_popup), NULL);
+    g_signal_connect(return_payment_btn, "clicked", G_CALLBACK(switch_to_menu), win);
+}
+
 //===================================================================//
 static void activate(GtkApplication *app, gpointer user_data) {
     /* Construct a GtkBuilder instance and load UI description */
@@ -1794,12 +2246,14 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_window_set_application(GTK_WINDOW(wins[2]), app);
     gtk_window_set_application(GTK_WINDOW(wins[3]), app);
     gtk_window_set_application(GTK_WINDOW(wins[4]), app);
+    gtk_window_set_application(GTK_WINDOW(wins[5]), app);
 
     set_login_win_objs(builder, wins);
     set_menu_win_objs(builder, wins);
     set_patient_win(builder, wins);
     set_consult_win(builder, wins);
     set_rendezvous_win(builder, wins);
+    set_payment_win(builder, wins);
 
     gtk_widget_set_visible(GTK_WIDGET(wins[0]), TRUE);
     g_object_unref(builder);
