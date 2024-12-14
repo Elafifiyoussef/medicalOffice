@@ -13,8 +13,12 @@ set(SOURCE_FILES
         patient.h patient.c
         rendezvous.h
         rendezvous.c
-        payment_management.c
-        payment_management.h
+        payment.c
+        payment.h
+        login.c
+        login.h
+        builder.c
+        builder.h
 )
 
 # Create executable

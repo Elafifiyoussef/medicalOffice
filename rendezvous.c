@@ -153,40 +153,59 @@ Rendezvous *getRVs() {
     return RVs;
 }
 
-Rendezvous *getRVbyCin(char *cin) {
-    FILE *file = fopen("consultation.bin", "rb");
+Rendezvous *getRVsbyCin(char *cin) {
+    FILE *file = fopen("rendezvous.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");
         return NULL;
     }
 
-    Rendezvous *RV = NULL;
+    Rendezvous *RVs = NULL;
     Rendezvous buffer;
     int count = 0;
 
     while (fread(&buffer, sizeof(Rendezvous), 1, file)) {
         if (strcmp(cin, buffer.id_pt) == 0) {
-            Rendezvous *temp = realloc(RV, (count + 1) * sizeof(Rendezvous));
+            Rendezvous *temp = realloc(RVs, (count + 1) * sizeof(Rendezvous));
             if (temp == NULL) {
                 printf("Memory allocation failed\n");
-                free(RV);
+                free(RVs);
                 fclose(file);
                 return NULL;
             }
 
-            RV = temp;
-            RV[count++] = buffer;
+            RVs = temp;
+            RVs[count++] = buffer;
         }
     }
 
     fclose(file);
 
     if (count == 0) {
-        printf("No consultations found for patient ID: %s\n", cin);
+        printf("No User Rendezvous found for patient ID: %s\n", cin);
         return NULL;
     }
 
-    return RV;
+    return RVs;
+}
+
+int getNumbOfRVsbyCin(char *cin) {
+    FILE *file = fopen("rendezvous.bin", "rb");
+    if (file == NULL) {
+        printf("File not found\n");
+        return 0; // Return 0 if the file cannot be opened
+    }
+
+    Rendezvous buffer;
+    int count = 0;
+    while (fread(&buffer, sizeof(Rendezvous), 1, file)) {
+        if (strcmp(cin, buffer.id_pt) == 0) {
+            count++;
+        }
+    }
+
+    fclose(file);
+    return count; // Return the count of patients
 }
 
 int is_holiday(Rendezvous RV){
@@ -222,6 +241,7 @@ int ifRVExists(int id) {
     FILE *file = fopen("rendezvous.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");
+        return 0;
     }
     Rendezvous *RV = malloc(sizeof(Rendezvous));
 

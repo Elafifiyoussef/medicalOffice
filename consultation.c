@@ -5,8 +5,8 @@
 #include "cfile.h"
 
 void addConsultation(Consult *consult) {
-    consult->DateTime = time(NULL);
-    struct tm *localTime = localtime(&consult->DateTime);
+    consult->dateTime = time(NULL);
+    struct tm *localTime = localtime(&consult->dateTime);
     printf("Current local time: %s", asctime(localTime));
     if (!ifConsultExists(consult->id)) {
         appendToFile("consultation.bin", consult, sizeof(Consult));
@@ -24,7 +24,7 @@ void displayConsultation(Consult *consult) {
     printf("%s\n", consult->diagnosis);
     printf("consultation treatment plan: ");
     printf("%s\n", consult->treatmentPlan);
-    time_t date = consult->DateTime;
+    time_t date = consult->dateTime;
     struct tm *localTime = localtime(&date);
     printf("consultation date: %s\n", asctime(localTime));
 }
@@ -194,6 +194,25 @@ Consult* getConsultsByCin(char *cin) {
     }
 
     return consults;
+}
+
+int getNumbOfConsultsByCin(char *cin) {
+    FILE *file = fopen("consultation.bin", "rb");
+    if (file == NULL) {
+        printf("File not found\n");
+        return 0; // Return 0 if the file cannot be opened
+    }
+
+    Consult buffer;
+    int count = 0;
+    while (fread(&buffer, sizeof(Consult), 1, file)) {
+        if (strcmp(cin, buffer.id_pt) == 0) {
+            count++;
+        }
+    }
+
+    fclose(file);
+    return count; // Return the count of patients
 }
 
 int ifConsultExists(int id) {

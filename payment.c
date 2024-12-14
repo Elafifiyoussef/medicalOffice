@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "payment_management.h"
+#include "payment.h"
 #include "cfile.h"
 
 void addPayment(Payment* payment) {
     if (!ifPaymentExists(payment->id)){
-        payment->DateTime = time(NULL);
+        payment->dateTime = time(NULL);
         appendToFile("payments.bin", payment, sizeof(Payment));
         printf("Payment added\n");
         return;
@@ -21,9 +21,9 @@ void displayPayment(Payment payment) {
     printf("Consultation ID: %d\n", payment.id_consult);
     printf("ID patient: %s\n", payment.id_pt);
     printf("Amount: %lf\n", payment.amount);
-    time_t t = payment.DateTime;
+    time_t t = payment.dateTime;
     struct tm tm = *localtime(&t);
-    printf("Date: %d/%d/%d at %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec );
+    printf("Date: %d/%d/%02d at %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec );
     printf("state: %s\n", payment.state);
     printf("--------------\n");
 
@@ -160,7 +160,7 @@ Payment* getPayments() {
     return payments;
 }
 
-Payment* getPaymentByCin(char *cin) {
+Payment* getPaymentsByCin(char *cin) {
     FILE *file = fopen("payments.bin", "rb");
     if (file == NULL) {
         printf("File not found\n");
@@ -194,6 +194,25 @@ Payment* getPaymentByCin(char *cin) {
     }
 
     return payment;
+}
+
+int getNumbOfBillsByCin(char *cin) {
+    FILE *file = fopen("payments.bin", "rb");
+    if (file == NULL) {
+        printf("File not found\n");
+        return 0; // Return 0 if the file cannot be opened
+    }
+
+    Payment buffer;
+    int count = 0;
+    while (fread(&buffer, sizeof(Payment), 1, file)) {
+        if (strcmp(cin, buffer.id_pt) == 0) {
+            count++;
+        }
+    }
+
+    fclose(file);
+    return count; // Return the count of patients
 }
 
 int ifPaymentExists(int id) {

@@ -160,7 +160,7 @@ int ifPatientExists(const char *cin_id) {
     Patient *patient = malloc(sizeof(Patient));
 
     while (fread(patient, sizeof(Patient), 1, file)) {
-        if (!strcmp(cin_id, patient->cin)) {
+        if (strcmp(cin_id, patient->cin) == 0) {
             fclose(file);
             free(patient);
             return 1;

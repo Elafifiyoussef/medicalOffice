@@ -1,5 +1,5 @@
-#ifndef PAYMENT_MANAGEMENT_H
-#define PAYMENT_MANAGEMENT_H
+#ifndef PAYMENT_H
+#define PAYMENT_H
 
 #include "consultation.h"
 
@@ -11,7 +11,7 @@ typedef struct PaymentManagement {
     char id_pt[MAX_CIN_LENGTH];
     char state[MAX_STATE_LENGTH];
     double amount;
-    time_t DateTime;
+    time_t dateTime;
 } Payment;
 
 void addPayment(Payment* payment);
@@ -21,7 +21,8 @@ void modifyPayment(Payment payment);
 void deletePayment(int id);
 Payment* getPayment(int id);
 Payment* getPayments();
-Payment* getPaymentByCin(char *cin);
+Payment* getPaymentsByCin(char *cin);
+int getNumbOfBillsByCin(char *cin);
 int ifPaymentExists(int id);
 int getNumbOfPayments();
 

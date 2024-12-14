@@ -1,5 +1,176 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
+    <!--Main Window--> <!--  renamed check  -->
+    <object id="main_window" class="GtkApplicationWindow">
+        <property name="title">main</property>
+
+        <child>
+            <object id="main_grid" class="GtkGrid">
+                <property name="row-spacing">50</property>
+                <property name="column-spacing">10</property>
+                <child>
+                    <object id="main_title_label" class="GtkLabel">
+                        <property name="label">MedOffice</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                            <property name="column-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+                <child>
+                    <object id="register_btn" class="GtkButton">
+                        <property name="label">Register</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                            <property name="column-span">2</property>
+                            <property name="row-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+                <child>
+                    <object id="login_btn" class="GtkButton">
+                        <property name="label">Login</property>
+                        <layout>
+                            <property name="column">3</property>
+                            <property name="row">1</property>
+                            <property name="column-span">2</property>
+                            <property name="row-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </object>
+
+<!--Register in Window-->
+    <object id="registerWindow" class="GtkApplicationWindow">
+        <property name="title">register</property>
+        <child>
+            <object id="grid_register" class="GtkGrid">
+                <property name="row-spacing">10</property>
+                <property name="column-spacing">10</property>
+
+                <child>
+                    <object id="RegisterCinEntry" class="GtkEntry">
+                        <property name="placeholder-text">CIN</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterFirstNameEntry" class="GtkEntry">
+                        <property name="placeholder-text">First Name</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterLastNameEntry" class="GtkEntry">
+                        <property name="placeholder-text">Last Name</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">2</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterAgeEntry" class="GtkEntry">
+                        <property name="placeholder-text">Age</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">3</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterAddressEntry" class="GtkEntry">
+                        <property name="placeholder-text">Address</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">4</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterPhoneEntry" class="GtkEntry">
+                        <property name="placeholder-text">Phone</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">5</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterEmailEntry" class="GtkEntry">
+                        <property name="placeholder-text">Email</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="RegisterPasswordEntry" class="GtkEntry">
+                        <property name="placeholder-text">Password</property>
+                        <property name="visibility">False</property> <!-- Hide password input -->
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="confirmPasswordEntry" class="GtkEntry">
+                        <property name="placeholder-text">Confirm Password</property>
+                        <property name="visibility">False</property> <!-- Hide password input -->
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">8</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="register" class="GtkButton">
+                        <property name="label">register</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">9</property>
+                            <property name="column-span">3</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="register_cancel" class="GtkButton">
+                        <property name="label">cancel</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">10</property>
+                            <property name="column-span">3</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+<!--Login Window-->
     <object id="loginWindow" class="GtkApplicationWindow">
         <property name="title">Login</property>
         <child>
@@ -7,8 +178,8 @@
                 <property name="row-spacing">10</property>
                 <property name="column-spacing">10</property>
                 <child>
-                    <object id="nameEntry" class="GtkEntry">
-                        <property name="placeholder-text">Name</property>
+                    <object id="emailEntry" class="GtkEntry">
+                        <property name="placeholder-text">email</property>
                         <layout>
                             <property name="column">1</property>
                             <property name="row">0</property>
@@ -35,9 +206,23 @@
                         </layout>
                     </object>
                 </child>
+                <child>
+                    <object id="login_cancel" class="GtkButton">
+                        <property name="label">cancel</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">2</property>
+                            <property name="column-span">2</property>
+                        </layout>
+                    </object>
+                </child>
             </object>
         </child>
     </object>
+
+    <!--****************************************-->
+    <!--Admin-->
+    <!--****************************************-->
 
 <!--Menu Window-->
     <object id="menuWindow" class="GtkApplicationWindow">
@@ -245,7 +430,7 @@
 
 <!--Payment Window-->
     <object id="paymentWindow" class="GtkApplicationWindow">
-        <property name="title">Afficher les rendez-vous</property>
+        <property name="title">Afficher les payments</property>
         <child>
             <object id="grid_payment" class="GtkGrid">
                 <property name="row-spacing">30</property>
@@ -276,6 +461,298 @@
                 <child>
                     <object id="return_payment_btn" class="GtkButton">
                         <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+    <!--****************************************-->
+    <!--User-->
+    <!--****************************************-->
+
+<!--Menu Window-->
+    <object id="userMenuWindow" class="GtkApplicationWindow">
+        <property name="title">Menu</property>
+        <child>
+            <object id="user_grid_menu" class="GtkGrid">
+                <property name="row-spacing">50</property>
+                <property name="column-spacing">50</property>
+
+                <child>
+                    <object id="user_btn_patient" class="GtkButton">
+                        <property name="label">Your information</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">6</property>
+                            <property name="row-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_btn_rdv" class="GtkButton">
+                        <property name="label"> Your Rendezvous</property>
+                        <layout>
+                            <property name="column">6</property>
+                            <property name="row">0</property>
+                            <property name="column-span">6</property>
+                            <property name="row-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <!-- Button for "Gestion de consultations" -->
+                <child>
+                    <object id="user_btn_consult" class="GtkButton">
+                        <property name="label">Your consultations</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">4</property>
+                            <property name="column-span">6</property>
+                            <property name="row-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <!-- Button for "Gestion de payements" -->
+                <child>
+                    <object id="user_btn_payment" class="GtkButton">
+                        <property name="label">Your payments</property>
+                        <layout>
+                            <property name="column">6</property>
+                            <property name="row">4</property>
+                            <property name="column-span">6</property>
+                            <property name="row-span">4</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <!-- Button for "log out" -->
+                <child>
+                    <object id="user_btn_out" class="GtkButton">
+                        <property name="label">logout</property>
+                        <layout>
+                            <property name="column">2</property>
+                            <property name="row">8</property>
+                            <property name="column-span">8</property>
+                        </layout>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </object>
+
+    <!--User menu Window-->
+    <object id="userInfoWindow" class="GtkApplicationWindow">
+        <property name="title">votre cordonnes</property>
+        <child>
+            <object id="user_grid_patient" class="GtkGrid">
+                <property name="row-spacing">10</property>
+                <property name="column-spacing">10</property>
+
+
+
+                <child>
+                    <object id="user_cin_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_last_name_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">1</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_first_name_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">2</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_age_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">3</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_address_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">4</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_phone_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">5</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_gender_label" class="GtkLabel">
+                        <property name="label"></property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">6</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_return_pt_btn" class="GtkButton">
+                        <property name="label">back</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">8</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+    <!--User Rendezvous Window-->
+    <object id="userRdvWindow" class="GtkApplicationWindow">
+        <property name="title">Votre rendezvous</property>
+        <child>
+            <object id="user_grid_rendezvous" class="GtkGrid">
+                <property name="row-spacing">30</property>
+                <property name="column-spacing">20</property>
+
+                <child>
+                    <object id="user_refresh_rendezvous_btn" class="GtkButton">
+                        <property name="label">actualiser</property>
+                        <layout>
+                            <property name="column">4</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_add_rendezvous_btn" class="GtkButton">
+                        <property name="label">ajouter</property>
+                        <layout>
+                            <property name="column">5</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_return_rendezvous_btn" class="GtkButton">
+                        <property name="label">retourner</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+    <!--User Consultation Window-->
+    <object id="userConsultWindow" class="GtkApplicationWindow">
+        <property name="title">Votre consultation</property>
+        <child>
+            <object id="user_grid_consult" class="GtkGrid">
+                <property name="row-spacing">30</property>
+                <property name="column-spacing">20</property>
+
+                <child>
+                    <object id="user_refresh_consult_btn" class="GtkButton">
+                        <property name="label">refresh</property>
+                        <layout>
+                            <property name="column">7</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_return_consult_btn" class="GtkButton">
+                        <property name="label">back</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+            </object>
+        </child>
+    </object>
+
+    <!--User Invoice Window-->
+    <object id="userInvoiceWindow" class="GtkApplicationWindow">
+        <property name="title">Votre consultation</property>
+        <child>
+            <object id="user_grid_invoice" class="GtkGrid">
+                <property name="row-spacing">30</property>
+                <property name="column-spacing">20</property>
+
+                <child>
+                    <object id="user_refresh_invoice_btn" class="GtkButton">
+                        <property name="label">refresh</property>
+                        <layout>
+                            <property name="column">7</property>
+                            <property name="row">0</property>
+                            <property name="column-span">1</property>
+                        </layout>
+                    </object>
+                </child>
+
+                <child>
+                    <object id="user_return_invoice_btn" class="GtkButton">
+                        <property name="label">back</property>
                         <layout>
                             <property name="column">0</property>
                             <property name="row">0</property>
