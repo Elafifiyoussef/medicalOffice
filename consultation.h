@@ -16,7 +16,7 @@ typedef struct consultation{
     time_t dateTime ;
 } Consult;
 
-void addConsultation(Consult *consult);
+void addConsultation(Consult consult);
 void deleteConsultation(int id);
 void modifyConsultation(Consult consult);
 void displayConsultation(Consult *consult);

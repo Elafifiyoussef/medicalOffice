@@ -4,12 +4,9 @@
 #include "consultation.h"
 #include "cfile.h"
 
-void addConsultation(Consult *consult) {
-    consult->dateTime = time(NULL);
-    struct tm *localTime = localtime(&consult->dateTime);
-    printf("Current local time: %s", asctime(localTime));
-    if (!ifConsultExists(consult->id)) {
-        appendToFile("consultation.bin", consult, sizeof(Consult));
+void addConsultation(Consult consult) {
+    if (!ifConsultExists(consult.id)) {
+        appendToFile("consultation.bin", &consult, sizeof(Consult));
     }
 }
 

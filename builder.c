@@ -42,42 +42,42 @@ GObject** get_windows_instance() {
             return NULL;
         }
 
-        windows_instance[2] = gtk_builder_get_object(builder, "loginWindow");
+        windows_instance[2] = gtk_builder_get_object(builder, "login_window");
         if (!windows_instance[2]) {
             g_printerr("Failed to get 'Login' window from builder UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[3] = gtk_builder_get_object(builder, "menuWindow");
+        windows_instance[3] = gtk_builder_get_object(builder, "admin_menu_window");
         if (!windows_instance[3]) {
             g_printerr("Failed to get 'Menu' window from main UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[4] = gtk_builder_get_object(builder, "patientWin");
+        windows_instance[4] = gtk_builder_get_object(builder, "admin_patient_window");
         if (!windows_instance[4]) {
             g_printerr("Failed to get 'Display Patient' window from builder UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[5] = gtk_builder_get_object(builder, "rendezvousWindow");
+        windows_instance[5] = gtk_builder_get_object(builder, "admin_rendezvous_window");
         if (!windows_instance[5]) {
             g_printerr("Failed to get 'Rendezvous' window from builder UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[6] = gtk_builder_get_object(builder, "consultWindow");
+        windows_instance[6] = gtk_builder_get_object(builder, "admin_consult_window");
         if (!windows_instance[6]) {
             g_printerr("Failed to get 'Consultation' window from builder UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[7] = gtk_builder_get_object(builder, "paymentWindow");
+        windows_instance[7] = gtk_builder_get_object(builder, "admin_invoice_window");
         if (!windows_instance[7]) {
             g_printerr("Failed to get 'payment' window from builder UI file\n");
             g_free(windows_instance);
@@ -91,7 +91,7 @@ GObject** get_windows_instance() {
             return NULL;
         }
 
-        windows_instance[9] = gtk_builder_get_object(builder, "userInfoWindow");
+        windows_instance[9] = gtk_builder_get_object(builder, "user_info_window");
         if (!windows_instance[9]) {
             g_printerr("Failed to get 'User information' window from builder UI file\n");
             g_free(windows_instance);
