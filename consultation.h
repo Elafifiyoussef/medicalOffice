@@ -1,26 +1,31 @@
 #ifndef CONSULTATION_H
 #define CONSULTATION_H
-#include "patient.h"
 #include <time.h>
 
+#define MAX_CIN_LENGTH 10
 #define MAX_SYMPTOMS_LENGTH 50
 #define MAX_DIAGNOSIS_LENGTH 100
 #define MAX_TREATMENT_LENGTH 100
 
-typedef struct {
+typedef struct consultation{
     int id;
-    int patient_id;
+    char id_pt[MAX_CIN_LENGTH];
     char symptoms[MAX_SYMPTOMS_LENGTH];
     char diagnosis[MAX_DIAGNOSIS_LENGTH];
     char treatmentPlan[MAX_TREATMENT_LENGTH];
-    time_t DateTime ;
-} Consultation;
+    time_t dateTime ;
+} Consult;
 
-void createConsultation();
-void modifyConsultation(int id);
+void addConsultation(Consult consult);
 void deleteConsultation(int id);
-void displayConsultation(Consultation *consult);
+void modifyConsultation(Consult consult);
+void displayConsultation(Consult *consult);
 void displayAllConsultation();
-
+Consult* getConsultation(int id);
+Consult* getConsultations();
+Consult* getConsultsByCin(char *cin);
+int getNumbOfConsultsByCin(char *cin);
+int ifConsultExists(int id);
+int getNumbOfConsults();
 
 #endif //CONSULTATION_H
