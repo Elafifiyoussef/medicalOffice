@@ -40,62 +40,75 @@ void g_add_patient(GtkButton *btn, gpointer data) {
     GtkLabel *label_phone = GTK_LABEL(object[11]);
 
     // Retrieve values from each entry
-    const char* cin_id = get_text_from_entry(GTK_WIDGET(entry_cin));
+    const char* cin = get_text_from_entry(GTK_WIDGET(entry_cin));
     const char* lName = get_text_from_entry(GTK_WIDGET(entry_lName));
     const char* fName = get_text_from_entry(GTK_WIDGET(entry_fName));
-    int age_value = get_int_from_entry(GTK_WIDGET(entry_age));
+    int age = get_int_from_entry(GTK_WIDGET(entry_age));
     const char* addr = get_text_from_entry(GTK_WIDGET(entry_addr));
     const char* phone = get_text_from_entry(GTK_WIDGET(entry_phone));
 
-    if (!isCinValid(cin_id)) {
-        gtk_label_set_text(label_cin, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
+    int cin_valid = isCinValid(cin);
+    int patient_exists = ifPatientExists(cin);
+    int first_name_valid = isNameValid(fName);
+    int last_name_valid = isNameValid(lName);
+    int age_valid = isAgeValid(age);
+    int address_valid = isTextValid(addr);
+    int phone_valid = isPhoneValid(phone);
+
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(label_cin), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
     } else {
-        gtk_label_set_text(label_cin, "");
+        if (patient_exists) {
+            gtk_label_set_text(GTK_LABEL(label_cin), "patient already exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_cin), "");
+        }
     }
 
-    if (!isNameValid(lName)) {
-        gtk_label_set_text(label_lName, "Name can only contain letters (A-Z or a-z) and space if needed!");
+    if (!first_name_valid) {
+        gtk_label_set_text(GTK_LABEL(label_lName), "Name can only contain letters (A-Z or a-z) and space if needed!");
     } else {
-        gtk_label_set_text(label_lName, "");
-    }
-    if (!isNameValid(fName)) {
-        gtk_label_set_text(label_fName, "Name can only contain letters (A-Z or a-z) and space if needed!");
-    } else {
-        gtk_label_set_text(label_fName, "");
-    }
-    if (!isAgeValid(age_value)) {
-        gtk_label_set_text(label_age, "Age must be a number between 18 and 120!");
-    } else {
-        gtk_label_set_text(label_age, "");
-    }
-    if (!isTextValid(addr)) {
-        gtk_label_set_text(label_addr, "address should not left empty!");
-    } else {
-        gtk_label_set_text(label_addr, "");
-    }
-    if (!isPhoneValid(phone)) {
-        gtk_label_set_text(label_phone, "Phone can only contain numbers (0-9)!");
-    } else {
-        gtk_label_set_text(label_phone, "");
+        gtk_label_set_text(GTK_LABEL(label_lName), "");
     }
 
-    if (cin_id != NULL && isNameValid(lName) && isNameValid(fName) && isAgeValid(age_value) && isTextValid(addr) && isPhoneValid(phone) ) {
+    if (!last_name_valid) {
+        gtk_label_set_text(GTK_LABEL(label_fName), "Name can only contain letters (A-Z or a-z) and space if needed!");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_fName), "");
+    }
+
+    if (!age_valid) {
+        gtk_label_set_text(GTK_LABEL(label_age), "age must be between 18 and 120");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_age), "");
+    }
+
+    if (!address_valid) {
+        gtk_label_set_text(GTK_LABEL(label_addr), "address should not left empty!");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_addr), "");
+    }
+
+    if (!phone_valid) {
+        gtk_label_set_text(GTK_LABEL(label_phone), "The phone number must be exactly 10 digits and contain only numeric characters (0–9)!");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_phone), "");
+    }
+
+    if (cin_valid && !patient_exists && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid) {
         Patient patient;
-        strcpy(patient.cin, cin_id);
+        strcpy(patient.cin, cin);
         strcpy(patient.lName, lName);
         strcpy(patient.fName, fName);
-        patient.age = age_value;
+        patient.age = age;
         strcpy(patient.address, addr);
         strcpy(patient.phone, phone);
 
-        if (!ifPatientExists(cin_id)){
-            addPatient(patient);
-            window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
-        } else {
-            printf("Patient already exists\n");
-        }
+        addPatient(patient);
+        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
+
     } else {
-        g_printerr("Error: Patient information are not correct\n");
+        g_printerr("Error: Patient information are incorrect\n");
     }
 }
 
@@ -195,6 +208,12 @@ void g_delete_patient(GtkButton *btn, gpointer data) {
     char *cin_id = data;
     printf("Patient with id: %s have been deleted\n", cin_id);
     deletePatient(cin_id);
+    // delete patient Rendezvous when he is deleted
+    Rendezvous *rendezvous = getRVsbyCin(cin_id);
+    int count = getNumbOfRVsbyCin(cin_id);
+    for (int i = 0; i < count; i++) {
+        cancelRV(rendezvous[i].id);
+    }
 }
 
 void delete_patient_popup(GtkButton *btn, gpointer data) {
@@ -259,51 +278,67 @@ void g_edit_patient(GtkButton *btn, gpointer data) {
     }
 
     // Retrieve values from each entry
-    const char* cin_id = get_text_from_entry(GTK_WIDGET(entry_cin));
+    const char* cin = get_text_from_entry(GTK_WIDGET(entry_cin));
     const char* lName = get_text_from_entry(GTK_WIDGET(entry_lName));
     const char* fName = get_text_from_entry(GTK_WIDGET(entry_fName));
-    int age_value = get_int_from_entry(GTK_WIDGET(entry_age));
+    int age = get_int_from_entry(GTK_WIDGET(entry_age));
     const char* addr = get_text_from_entry(GTK_WIDGET(entry_addr));
     const char* phone = get_text_from_entry(GTK_WIDGET(entry_phone));
 
-    if (!isCinValid(cin_id)) {
-        gtk_label_set_text(label_cin, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
+    int cin_valid = isCinValid(cin);
+    int patient_exist = ifPatientExists(cin);
+    int first_name_valid = isNameValid(fName);
+    int last_name_valid = isNameValid(lName);
+    int age_valid = isAgeValid(age);
+    int address_valid = isTextValid(addr);
+    int phone_valid = isPhoneValid(phone);
+
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(label_cin), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
     } else {
-        gtk_label_set_text(label_cin, "");
+        if (!patient_exist) {
+            gtk_label_set_text(GTK_LABEL(label_cin), "patient does not already exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_cin), "");
+        }
     }
 
-    if (!isNameValid(lName)) {
-        gtk_label_set_text(label_lName, "Name can only contain letters (A-Z or a-z) and space if needed!");
+    if (!first_name_valid) {
+        gtk_label_set_text(GTK_LABEL(label_lName), "Name can only contain letters (A-Z or a-z) and space if needed!");
     } else {
-        gtk_label_set_text(label_lName, "");
-    }
-    if (!isNameValid(fName)) {
-        gtk_label_set_text(label_fName, "Name can only contain letters (A-Z or a-z) and space if needed!");
-    } else {
-        gtk_label_set_text(label_fName, "");
-    }
-    if (!isAgeValid(age_value)) {
-        gtk_label_set_text(label_age, "Age must be a number between 18 and 120!");
-    } else {
-        gtk_label_set_text(label_age, "");
-    }
-    if (!isTextValid(addr)) {
-        gtk_label_set_text(label_addr, "address should not left empty!");
-    } else {
-        gtk_label_set_text(label_addr, "");
-    }
-    if (!isPhoneValid(phone)) {
-        gtk_label_set_text(label_phone, "Phone can only contain numbers (0-9)!");
-    } else {
-        gtk_label_set_text(label_phone, "");
+        gtk_label_set_text(GTK_LABEL(label_lName), "");
     }
 
-    if (cin_id != NULL && isNameValid(lName) && isNameValid(fName) && isAgeValid(age_value) && isTextValid(addr) && isPhoneValid(phone) ) {
+    if (!last_name_valid) {
+        gtk_label_set_text(GTK_LABEL(label_fName), "Name can only contain letters (A-Z or a-z) and space if needed!");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_fName), "");
+    }
+
+    if (!age_valid) {
+        gtk_label_set_text(GTK_LABEL(label_age), "age must be between 18 and 120");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_age), "");
+    }
+
+    if (!address_valid) {
+        gtk_label_set_text(GTK_LABEL(label_addr), "address should not left empty!");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_addr), "");
+    }
+
+    if (!phone_valid) {
+        gtk_label_set_text(GTK_LABEL(label_phone), "The phone number must be exactly 10 digits and contain only numeric characters (0–9)!");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_phone), "");
+    }
+
+    if (cin_valid && patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid) {
         Patient patient;
-        strcpy(patient.cin, cin_id);
+        strcpy(patient.cin, cin);
         strcpy(patient.lName, lName);
         strcpy(patient.fName, fName);
-        patient.age = age_value;
+        patient.age = age;
         strcpy(patient.address, addr);
         strcpy(patient.phone, phone);
         modifyPatient(patient);
@@ -556,74 +591,76 @@ void g_add_consult(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[3]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[4]);
+    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[1]);
+    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[2]);
+    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[3]);
 
     //Labels
-    GtkLabel *label_id_consult = GTK_LABEL(widgets[5]);
-    GtkLabel *label_id_patient = GTK_LABEL(widgets[6]);
-    GtkLabel *label_symptoms = GTK_LABEL(widgets[7]);
-    GtkLabel *label_diagnosis = GTK_LABEL(widgets[8]);
-    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[9]);
+    GtkLabel *label_id_patient = GTK_LABEL(widgets[4]);
+    GtkLabel *label_symptoms = GTK_LABEL(widgets[5]);
+    GtkLabel *label_diagnosis = GTK_LABEL(widgets[6]);
+    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[7]);
 
-    if (!entry_id_consult || !entry_id_patient || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
+    if (!entry_id_patient || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
         g_printerr("Error: One of the entries is NULL\n");
         return;
     }
 
     // Retrieve values from each entry
-    int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_consult));
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
     const char* symptoms = get_text_from_entry(GTK_WIDGET(entry_symptoms));
     const char* diagnosis = get_text_from_entry(GTK_WIDGET(entry_diagnosis));
     const char* treatmentPlan = get_text_from_entry(GTK_WIDGET(entry_treatmentPlan));
 
-    if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_id_patient, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
+    int cin_valid = isCinValid(patient_id);
+    int patient_exists = ifPatientExists(patient_id);
+    int symptoms_valid = isTextValid(symptoms);
+    int diagnosis_valid = isTextValid(diagnosis);
+    int treatment_plan_valid = isTextValid(treatmentPlan);
+
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(label_id_patient), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
     } else {
-        gtk_label_set_text(label_id_patient, "");
+        if (!patient_exists) {
+            gtk_label_set_text(GTK_LABEL(label_id_patient), "patient does not exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_id_patient), "");
+        }
     }
 
-    if (!isTextValid(symptoms)) {
+    if (!symptoms_valid) {
         gtk_label_set_text(label_symptoms, "symptoms should not left empty!");
     } else {
         gtk_label_set_text(label_symptoms, "");
     }
 
-    if (!isTextValid(diagnosis)) {
+    if (!diagnosis_valid) {
         gtk_label_set_text(label_diagnosis, "diagnosis should not left empty!");
     } else {
         gtk_label_set_text(label_diagnosis, "");
     }
 
-    if (!isTextValid(treatmentPlan)) {
+    if (!treatment_plan_valid) {
         gtk_label_set_text(label_treatmentPlan, "treatment plan should not left empty!");
     } else {
         gtk_label_set_text(label_treatmentPlan, "");
     }
 
-    if (consult_id != 0 && isCinValid(patient_id) && isTextValid(symptoms) && isTextValid(diagnosis) && isTextValid(treatmentPlan)) {
+    if (cin_valid && patient_exists && symptoms_valid && diagnosis_valid && treatment_plan_valid) {
         Consult consult;
-        consult.id = consult_id;
+        Patient *patient = getPatient(patient_id);
+        consult.id = get_next_valid_consult_id();
         strcpy(consult.id_pt, patient_id);
+        strcpy(consult.patient_lName, patient->lName);
+        strcpy(consult.patient_fName, patient->fName);
         strcpy(consult.symptoms, symptoms);
         strcpy(consult.diagnosis, diagnosis);
         strcpy(consult.treatmentPlan, treatmentPlan);
         consult.dateTime = time(NULL);
-        if (consult.dateTime == 0) {
-            fprintf(stderr, "Error: consults[i].dateTime is not initialized.\n");
-        }
-        if (!ifConsultExists(consult_id) && ifPatientExists(patient_id)) {
-            addConsultation(consult);
-            window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
-        } else {
-            g_printerr("Consult already exist\n");
-        }
-    } else {
-        g_printerr("Error: Consultation is NULL\n");
+        addConsultation(consult);
+        free(patient);
+        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
     }
 }
 
@@ -643,11 +680,6 @@ void add_consult_popup(GtkButton *btn, gpointer data) {
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
-
-    GtkWidget *id_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_err_label), "id_err_label", "label#id_err_label{color: red;}");
-    GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Consult Id");
 
     GtkWidget *id_pt_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
@@ -670,17 +702,15 @@ void add_consult_popup(GtkButton *btn, gpointer data) {
     gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
 
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 12);
-    widgets[0] = id_entry;
-    widgets[1] = id_pt_entry;
-    widgets[2] = symptoms_entry;
-    widgets[3] = diagnosis_entry;
-    widgets[4] = treatmentPlan_entry;
-    widgets[5] = id_err_label;
-    widgets[6] = id_pt_err_label;
-    widgets[7] = symptoms_err_label;
-    widgets[8] = diagnosis_err_label;
-    widgets[9] = treatmentPlan_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 8);
+    widgets[0] = id_pt_entry;
+    widgets[1] = symptoms_entry;
+    widgets[2] = diagnosis_entry;
+    widgets[3] = treatmentPlan_entry;
+    widgets[4] = id_pt_err_label;
+    widgets[5] = symptoms_err_label;
+    widgets[6] = diagnosis_err_label;
+    widgets[7] = treatmentPlan_err_label;
 
     // Create the buttons
     GtkWidget *add_btn = gtk_button_new_with_label("Add");
@@ -691,8 +721,6 @@ void add_consult_popup(GtkButton *btn, gpointer data) {
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_pt_err_label);
     gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), symptoms_err_label);
@@ -748,6 +776,7 @@ void delete_consult_popup(GtkButton *btn, gpointer data) {
 }
 
 void g_edit_consult(GtkButton *btn, gpointer data) {
+
     GtkWidget **widgets = data;
     if (!widgets) {
         g_printerr("Error: widgets is NULL\n");
@@ -755,67 +784,67 @@ void g_edit_consult(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[3]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[4]);
+    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[1]);
+    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[2]);
+    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[3]);
 
     //Labels
-    GtkLabel *label_id_patient = GTK_LABEL(widgets[5]);
-    GtkLabel *label_symptoms = GTK_LABEL(widgets[6]);
-    GtkLabel *label_diagnosis = GTK_LABEL(widgets[7]);
-    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[8]);
+    GtkLabel *label_id_patient = GTK_LABEL(widgets[4]);
+    GtkLabel *label_symptoms = GTK_LABEL(widgets[5]);
+    GtkLabel *label_diagnosis = GTK_LABEL(widgets[6]);
+    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[7]);
 
-    if (!entry_id_consult || !entry_id_patient || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
-
+    int consult_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "consultID"));
     // Retrieve values from each entry
-    int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_consult));
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
     const char* symptoms = get_text_from_entry(GTK_WIDGET(entry_symptoms));
     const char* diagnosis = get_text_from_entry(GTK_WIDGET(entry_diagnosis));
     const char* treatmentPlan = get_text_from_entry(GTK_WIDGET(entry_treatmentPlan));
 
-    if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_id_patient, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
+    int cin_valid = isCinValid(patient_id);
+    int patient_exists = ifPatientExists(patient_id);
+    int symptoms_valid = isTextValid(symptoms);
+    int diagnosis_valid = isTextValid(diagnosis);
+    int treatment_plan_valid = isTextValid(treatmentPlan);
+
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(label_id_patient), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
     } else {
-        gtk_label_set_text(label_id_patient, "");
+        if (!patient_exists) {
+            gtk_label_set_text(GTK_LABEL(label_id_patient), "patient does not exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_id_patient), "");
+        }
     }
 
-    if (!isTextValid(symptoms)) {
+    if (!symptoms_valid) {
         gtk_label_set_text(label_symptoms, "symptoms should not left empty!");
     } else {
         gtk_label_set_text(label_symptoms, "");
     }
 
-    if (!isTextValid(diagnosis)) {
+    if (!diagnosis_valid) {
         gtk_label_set_text(label_diagnosis, "diagnosis should not left empty!");
     } else {
         gtk_label_set_text(label_diagnosis, "");
     }
 
-    if (!isTextValid(treatmentPlan)) {
+    if (!treatment_plan_valid) {
         gtk_label_set_text(label_treatmentPlan, "treatment plan should not left empty!");
     } else {
         gtk_label_set_text(label_treatmentPlan, "");
     }
 
-    if (consult_id != 0 && isCinValid(patient_id) && isTextValid(symptoms) && isTextValid(diagnosis) && isTextValid(treatmentPlan)) {
+    if (cin_valid && patient_exists && symptoms_valid && diagnosis_valid && treatment_plan_valid) {
         Consult *consult = getConsultation(consult_id);
         consult->id = consult_id;
         strcpy(consult->id_pt, patient_id);
         strcpy(consult->symptoms, symptoms);
         strcpy(consult->diagnosis, diagnosis);
         strcpy(consult->treatmentPlan, treatmentPlan);
-        if (ifPatientExists(patient_id)){
-            modifyConsultation(*consult);
-            window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
-        } else {
-            printf("Patient ID does not exist\n");
-        }
+        modifyConsultation(*consult);
+        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
     } else {
         g_printerr("Error: Consultation information are not correct\n");
     }
@@ -839,11 +868,6 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-    GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Consult Id");
-    char id_text[10];
-    sprintf(id_text, "%d", consult->id);
-    set_text_entry(id_entry, id_text);
 
     GtkWidget *id_pt_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
@@ -873,27 +897,27 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
     set_text_entry(treatmentPlan_entry, consult->treatmentPlan);
 
-    GtkWidget **widget =  g_new(GtkWidget*, 9);
-    widget[0] = id_entry;
-    widget[1] = id_pt_entry;
-    widget[2] = symptoms_entry;
-    widget[3] = diagnosis_entry;
-    widget[4] = treatmentPlan_entry;
-    widget[5] = id_pt_err_label;
-    widget[6] = symptoms_err_label;
-    widget[7] = diagnosis_err_label;
-    widget[8] = treatmentPlan_err_label;
+    GtkWidget **widget =  g_new(GtkWidget*, 8);
+    widget[0] = id_pt_entry;
+    widget[1] = symptoms_entry;
+    widget[2] = diagnosis_entry;
+    widget[3] = treatmentPlan_entry;
+    widget[4] = id_pt_err_label;
+    widget[5] = symptoms_err_label;
+    widget[6] = diagnosis_err_label;
+    widget[7] = treatmentPlan_err_label;
 
     // Create the buttons
-    GtkWidget *add_btn = gtk_button_new_with_label("modifier");
+    GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
+    g_object_set_data(G_OBJECT(edit_btn), "consultID", GINT_TO_POINTER(consult->id));
+
     // Connect the cancel button to close the window
-    g_signal_connect(add_btn, "clicked", G_CALLBACK(g_edit_consult), widget);
+    g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_consult), widget);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_pt_err_label);
     gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), symptoms_err_label);
@@ -902,7 +926,7 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     gtk_box_append(GTK_BOX(box), diagnosis_entry);
     gtk_box_append(GTK_BOX(box), treatmentPlan_err_label);
     gtk_box_append(GTK_BOX(box), treatmentPlan_entry);
-    gtk_box_append(GTK_BOX(box), add_btn);
+    gtk_box_append(GTK_BOX(box), edit_btn);
     gtk_box_append(GTK_BOX(box), cancel_btn);
 
     // Show the popup window
@@ -948,14 +972,8 @@ void g_update_display_consult(GtkButton *btn, gpointer data) {
         "   padding: 10px 30px;"
         "}");
 
-        Patient* patient = getPatient(consults[i].id_pt);
-        if (patient == NULL) {
-            printf("Patient with ID %s not found\n", consults[i].id_pt);
-            continue;
-        }
-
         char fullName_pt[40];
-        snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", patient->lName, patient->fName);
+        snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", consults[i].patient_lName, consults[i].patient_fName);
         GtkWidget *name_label = gtk_label_new(fullName_pt);
         set_widget_css(GTK_WIDGET(name_label), "header",
         "label#header {"
@@ -1089,26 +1107,18 @@ void g_add_rdv(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_rdv = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_id_pt = GTK_ENTRY(widgets[1]);
-    GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[2]);
-    GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[3]);
-    GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[4]);
-    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[5]);
-    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[6]);
+    GtkEntry *entry_id_pt = GTK_ENTRY(widgets[0]);
+    GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[1]);
+    GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[3]);
+    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[4]);
+    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[5]);
     //Labels
-    GtkLabel *label_id_rdv = GTK_LABEL(widgets[7]);
-    GtkLabel *label_id_pt = GTK_LABEL(widgets[8]);
-    GtkLabel *label_date = GTK_LABEL(widgets[9]);
-    GtkLabel *label_state = GTK_LABEL(widgets[10]);
-
-    if (!entry_id_rdv || !entry_id_pt || !dropdown_year || !dropdown_month || !dropdown_day || !dropdown_state) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
+    GtkLabel *label_id_pt = GTK_LABEL(widgets[6]);
+    GtkLabel *label_date = GTK_LABEL(widgets[7]);
+    GtkLabel *label_state = GTK_LABEL(widgets[8]);
 
     // Retrieve values from each entry
-    int rdv_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_pt));
     const char* rdv_year = get_dropdown_item(dropdown_year);
     int year = strtol(rdv_year, NULL, 10);
@@ -1120,49 +1130,57 @@ void g_add_rdv(GtkButton *btn, gpointer data) {
     int hour = atoi(rdv_hour);
     const char* rdv_state = get_dropdown_item(dropdown_state);
 
-    if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_id_pt, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
-        return;
-    }
-    gtk_label_set_text(label_id_pt, "");
+    int cin_valid = isCinValid(patient_id);
+    int patient_exists = ifPatientExists(patient_id);
+    int date_valid = isDateValid(year, month, day);
+    int hour_valid = isHourValid(hour);
 
-
-    if (!isDateValid(year, month, day)) {
-        gtk_label_set_text(label_date, "Date chosen is not valid");
-        return;
-    }
-    gtk_label_set_text(label_state, "");
-
-    if (!isHourValid(hour)) {
-        printf("Invalid hour\n");
-        return;
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(label_id_pt), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
+    } else {
+        if (!patient_exists) {
+            gtk_label_set_text(GTK_LABEL(label_id_pt), "patient does not exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_id_pt), "");
+        }
     }
 
-    if (rdv_id != 0) {
+    if (!date_valid) {
+        gtk_label_set_text(GTK_LABEL(label_date), "Date chosen is not valid");
+    } else {
+        if (!hour_valid) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Hour chosen is not valid");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_date), "");
+        }
+    }
+
+    if (cin_valid && patient_exists && date_valid) {
         Rendezvous rendezvous;
-        rendezvous.id = rdv_id;
+        rendezvous.id = get_next_valid_RV_id();
         strcpy(rendezvous.id_pt, patient_id);
         rendezvous.day = day;
         rendezvous.month = month;
         rendezvous.year = year;
         rendezvous.hour = hour;
         strcpy(rendezvous.state, rdv_state);
-        if (is_holiday(rendezvous)) {
-            printf("Invalid Rendezvous: it's a holiday\n");
-            return;
+
+        int weekend = is_weekend(rendezvous);
+        int holiday = is_holiday(rendezvous);
+
+        if (holiday) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
+        } else {
+            if (weekend) {
+                gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's weekend");
+            } else {
+                gtk_label_set_text(GTK_LABEL(label_date), "");
+            }
         }
-        if (is_weekend(rendezvous)) {
-            printf("Invalid Rendezvous: it's weekend\n");
-            return;
-        }
-        if (ifPatientExists(patient_id)) {
+        if (!weekend && !holiday) {
             addRV(rendezvous);
             window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
-        } else {
-            g_printerr("Patient with ID: %s does not exist\n", patient_id);
         }
-    } else {
-        g_printerr("Error: Rendezvous is NULL\n");
     }
 }
 
@@ -1182,12 +1200,6 @@ void add_rdv_popup(GtkButton *btn, gpointer data) {
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
-
-    GtkWidget *id_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_err_label), "id_err_label", "label#id_err_label{color: red;}");
-
-    GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Rendezvous Id");
 
     GtkWidget *id_pt_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
@@ -1251,22 +1263,21 @@ void add_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(rdv_state_model), NULL);
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 11);
-    widgets[0] = id_entry;
-    widgets[1] = id_pt_entry;
-    widgets[2] = year_dropdown;
-    widgets[3] = month_dropdown;
-    widgets[4] = day_dropdown;
-    widgets[5] = hour_dropdown;
-    widgets[6] = state_dropdown;
-    widgets[7] = id_err_label;
-    widgets[8] = id_pt_err_label;
-    widgets[9] = date_err_label;
-    widgets[10] = state_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 9);
+    widgets[0] = id_pt_entry;
+    widgets[1] = year_dropdown;
+    widgets[2] = month_dropdown;
+    widgets[3] = day_dropdown;
+    widgets[4] = hour_dropdown;
+    widgets[5] = state_dropdown;
+    widgets[6] = id_pt_err_label;
+    widgets[7] = date_err_label;
+    widgets[8] = state_err_label;
 
     // Create the buttons
     GtkWidget *add_btn = gtk_button_new_with_label("Add");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
 
     // Connect the cancel button to close the window
     g_signal_connect(add_btn, "clicked", G_CALLBACK(g_add_rdv), widgets);
@@ -1275,8 +1286,6 @@ void add_rdv_popup(GtkButton *btn, gpointer data) {
 
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_pt_err_label);
     gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), date_err_label);
@@ -1336,27 +1345,20 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_rdv = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[1]);
-    GtkDropDown *year_dropdown = GTK_DROP_DOWN(widgets[2]);
-    GtkDropDown *month_dropdown = GTK_DROP_DOWN(widgets[3]);
-    GtkDropDown *day_dropdown = GTK_DROP_DOWN(widgets[4]);
-    GtkDropDown *hour_dropdown = GTK_DROP_DOWN(widgets[5]);
-    GtkDropDown *state_dropdown = GTK_DROP_DOWN(widgets[6]);
+    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[0]);
+    GtkDropDown *year_dropdown = GTK_DROP_DOWN(widgets[1]);
+    GtkDropDown *month_dropdown = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *day_dropdown = GTK_DROP_DOWN(widgets[3]);
+    GtkDropDown *hour_dropdown = GTK_DROP_DOWN(widgets[4]);
+    GtkDropDown *state_dropdown = GTK_DROP_DOWN(widgets[5]);
 
     //Labels
-    GtkLabel *label_id_rdv = GTK_LABEL(widgets[7]);
-    GtkLabel *label_id_pt = GTK_LABEL(widgets[8]);
-    GtkLabel *label_date = GTK_LABEL(widgets[9]);
-    GtkLabel *label_state = GTK_LABEL(widgets[10]);
+    GtkLabel *label_id_pt = GTK_LABEL(widgets[6]);
+    GtkLabel *label_date = GTK_LABEL(widgets[7]);
+    GtkLabel *label_state = GTK_LABEL(widgets[8]);
 
-    if (!entry_id_rdv || !entry_id_patient || !year_dropdown || !month_dropdown || !day_dropdown || !hour_dropdown) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
-
+    int rdv_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "rdvID"));
     // Retrieve values from each entry
-    int rdv_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
     const char* rdv_year = get_dropdown_item(year_dropdown);
     int year = strtol(rdv_year, NULL, 10);
@@ -1368,25 +1370,32 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
     int hour = atoi(rdv_hour);
     const char* rdv_state = get_dropdown_item(state_dropdown);
 
-    if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_id_pt, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
-        return;
-    }
-    gtk_label_set_text(label_id_pt, "");
+    int cin_valid = isCinValid(patient_id);
+    int patient_exists = ifPatientExists(patient_id);
+    int date_valid = isDateValid(year, month, day);
+    int hour_valid = isHourValid(hour);
 
-
-    if (!isDateValid(year, month, day)) {
-        gtk_label_set_text(label_date, "Date chosen is not valid");
-        return;
-    }
-    gtk_label_set_text(label_state, "");
-
-    if (!isHourValid(hour)) {
-        printf("Invalid hour\n");
-        return;
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(label_id_pt), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
+    } else {
+        if (!patient_exists) {
+            gtk_label_set_text(GTK_LABEL(label_id_pt), "patient does not exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_id_pt), "");
+        }
     }
 
-    if (rdv_id != 0) {
+    if (!date_valid) {
+        gtk_label_set_text(GTK_LABEL(label_date), "Date chosen is not valid");
+    } else {
+        if (!hour_valid) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Hour chosen is not valid");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_date), "");
+        }
+    }
+
+    if (cin_valid && patient_exists && date_valid) {
         Rendezvous rendezvous;
         rendezvous.id = rdv_id;
         strcpy(rendezvous.id_pt, patient_id);
@@ -1396,22 +1405,22 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
         rendezvous.hour = hour;
         strcpy(rendezvous.state, rdv_state);
 
-        if (is_holiday(rendezvous)) {
-            printf("Invalid Rendezvous: it's a holiday\n");
-            return;
+        int weekend = is_weekend(rendezvous);
+        int holiday = is_holiday(rendezvous);
+
+        if (weekend) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
+        } else {
+            if (holiday) {
+                gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's weekend");
+            } else {
+                gtk_label_set_text(GTK_LABEL(label_date), "");
+            }
         }
-        if (is_weekend(rendezvous)) {
-            printf("Invalid Rendezvous: it's weekend\n");
-            return;
-        }
-        if (ifPatientExists(patient_id)) {
+        if (!weekend && !holiday) {
             modifyRV(rendezvous);
             window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
-        } else {
-            g_printerr("Patient with ID: %s does not exist\n", patient_id);
         }
-    } else {
-        g_printerr("Error: Rendezvous is NULL\n");
     }
 }
 
@@ -1432,14 +1441,6 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
-
-    GtkWidget *id_err_label = gtk_label_new("");
-
-    GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Rendezvous Id");
-    char id_text[10];
-    sprintf(id_text, "%d", RV->id);
-    set_text_entry(id_entry, id_text);
 
     GtkWidget *id_pt_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
@@ -1518,31 +1519,29 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(rdv_state_model), NULL);
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 11);
-    widgets[0] = id_entry;
-    widgets[1] = id_pt_entry;
-    widgets[2] = year_dropdown;
-    widgets[3] = month_dropdown;
-    widgets[4] = day_dropdown;
-    widgets[5] = hour_dropdown;
-    widgets[6] = state_dropdown;
-    widgets[7] = id_err_label;
-    widgets[8] = id_pt_err_label;
-    widgets[9] = date_err_label;
-    widgets[10] = state_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 9);
+    widgets[0] = id_pt_entry;
+    widgets[1] = year_dropdown;
+    widgets[2] = month_dropdown;
+    widgets[3] = day_dropdown;
+    widgets[4] = hour_dropdown;
+    widgets[5] = state_dropdown;
+    widgets[6] = id_pt_err_label;
+    widgets[7] = date_err_label;
+    widgets[8] = state_err_label;
 
 
     // Create the buttons
-    GtkWidget *edit_btn = gtk_button_new_with_label("modifier");
+    GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
+    g_object_set_data(G_OBJECT(edit_btn), "rdvID", GINT_TO_POINTER(RV->id));
 
     // Connect the cancel button to close the window
     g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_rdv), widgets);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_pt_err_label);
     gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), date_err_label);
@@ -1714,60 +1713,47 @@ void g_add_payment(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_payment_id = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_consult_id = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_pt_id = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_amount = GTK_ENTRY(widgets[3]);
+    GtkEntry *entry_consult_id = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_amount = GTK_ENTRY(widgets[1]);
     //Labels
-    GtkLabel *label_payment_id = GTK_LABEL(widgets[4]);
-    GtkLabel *label_consult_id = GTK_LABEL(widgets[5]);
-    GtkLabel *label_pt_id = GTK_LABEL(widgets[6]);
-    GtkLabel *label_date = GTK_LABEL(widgets[7]);
-
-    if (!entry_payment_id && !entry_consult_id && !entry_pt_id && !entry_amount) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
+    GtkLabel *label_consult_id = GTK_LABEL(widgets[2]);
+    GtkLabel *label_amount = GTK_LABEL(widgets[3]);
 
     // Retrieve values from each entry
-    int payment_id = get_int_from_entry(GTK_WIDGET(entry_payment_id));
     int consult_id = get_int_from_entry(GTK_WIDGET(entry_consult_id));
-    const char *patient_id = get_text_from_entry(GTK_WIDGET(entry_pt_id));
     double amount = get_double_from_entry(GTK_WIDGET(entry_amount));
 
-    if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_pt_id, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
-        return;
-    }
-    gtk_label_set_text(label_pt_id, "");
+    int consult_exists = ifConsultExists(consult_id);
 
-    if (payment_id && consult_id && patient_id )  {
-        Payment payment;
-        payment.id = payment_id;
-        payment.id_consult = consult_id;
-        strcpy(payment.id_pt, patient_id);
-        payment.amount = amount;
-        strcpy(payment.state, "pending");
+    int amount_valid = isAmountValid(amount);
 
-        if (ifPaymentExists(payment_id)) {
-            g_printerr("Payment with ID: %d already exists\n", payment_id);
-            return;
-        }
-
-        if (!ifPatientExists(patient_id)) {
-            g_printerr("Patient with ID: %s does not exist\n", patient_id);
-            return;
-        }
-
-        if (!ifConsultExists(consult_id)) {
-            g_printerr("Consulting with ID: %d does not exist\n", consult_id);
-            return;
-        }
-
-        addPayment(&payment);
-        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
+    if (!consult_exists) {
+        gtk_label_set_text(GTK_LABEL(label_consult_id), "consultation does not exists");
     } else {
-        g_printerr("Error: Rendezvous is NULL\n");
+        gtk_label_set_text(GTK_LABEL(label_consult_id), "");
+    }
+
+    if (!amount_valid) {
+        gtk_label_set_text(GTK_LABEL(label_amount), "Invalid amount specified");
+    } else {
+        gtk_label_set_text(GTK_LABEL(label_amount), "");
+    }
+
+    if (consult_exists && amount_valid ) {
+        Payment *payment = malloc(sizeof(Payment));
+        Consult *consult = getConsultation(consult_id);
+        payment->id = get_next_valid_invoice_id();
+        payment->id_consult = consult_id;
+        strcpy(payment->id_pt, consult->id_pt);
+        strcpy(payment->patient_lName, consult->patient_lName);
+        strcpy(payment->patient_fName, consult->patient_fName);
+        payment->amount = amount;
+        strcpy(payment->state, "pending");
+        payment->dateTime = time(NULL);
+        addPayment(*payment);
+        free(consult);
+        free(payment);
+        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
     }
 }
 
@@ -1788,35 +1774,22 @@ void add_payment_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-    GtkWidget *id_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_err_label), "err_label", "label#err_label{color: red;}");
-    GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Invoice Id");
 
     GtkWidget *id_consult_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(id_consult_err_label), "err_label", "label#err_label{color: red;}");
     GtkWidget *id_consult_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(id_consult_entry), "Consult Id");
 
-    GtkWidget *id_pt_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_pt_err_label), "err_label", "label#err_label{color: red;}");
-    GtkWidget *id_pt_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient Id (CIN)");
-
     GtkWidget *amount_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(amount_err_label), "err_label", "label#err_label{color: red;}");
     GtkWidget *amount_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(amount_entry), "Amount");
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 8);
-    widgets[0] = id_entry;
-    widgets[1] = id_consult_entry;
-    widgets[2] = id_pt_entry;
-    widgets[3] = amount_entry;
-    widgets[4] = id_err_label;
-    widgets[5] = id_consult_err_label;
-    widgets[6] = id_pt_err_label;
-    widgets[7] = amount_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 4);
+    widgets[0] = id_consult_entry;
+    widgets[1] = amount_entry;
+    widgets[2] = id_consult_err_label;
+    widgets[3] = amount_err_label;
 
     // Create the buttons
     GtkWidget *add_btn = gtk_button_new_with_label("Add");
@@ -1828,12 +1801,8 @@ void add_payment_popup(GtkButton *btn, gpointer data) {
     // g_signal_connect(year_dropdown, "notify::selected", G_CALLBACK(on_year_changed), NULL);
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_consult_err_label);
     gtk_box_append(GTK_BOX(box), id_consult_entry);
-    gtk_box_append(GTK_BOX(box), id_pt_err_label);
-    gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), amount_err_label);
     gtk_box_append(GTK_BOX(box), amount_entry);
     gtk_box_append(GTK_BOX(box), add_btn);
@@ -1889,64 +1858,49 @@ void g_edit_payment(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_payment = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_id_pt = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_amount = GTK_ENTRY(widgets[3]);
+    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_amount = GTK_ENTRY(widgets[1]);
     // Dropdowns
-    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[4]);
+    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[2]);
     //Labels
-    GtkLabel *label_id_rdv = GTK_LABEL(widgets[5]);
-    GtkLabel *label_id_pt = GTK_LABEL(widgets[6]);
-    GtkLabel *label_date = GTK_LABEL(widgets[7]);
-    GtkLabel *label_state = GTK_LABEL(widgets[8]);
+    GtkLabel *consult_id_label = GTK_LABEL(widgets[3]);
+    GtkLabel *amount_label = GTK_LABEL(widgets[4]);
 
-    if (!entry_id_payment || !entry_id_consult || !entry_id_pt || !entry_amount ) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
-
+    int payment_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "paymentID"));
     // Retrieve values from each entry
-    int payment_id = get_int_from_entry(GTK_WIDGET(entry_id_payment));
     int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_consult));
-    const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_pt));
     double amount = get_double_from_entry(GTK_WIDGET(entry_amount));
     const char* state = get_dropdown_item(dropdown_state);
 
-    if (!isCinValid(patient_id)) {
-        gtk_label_set_text(label_id_pt, "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
-        return;
-    }
-    gtk_label_set_text(label_id_pt, "");
+    int consult_exists = ifConsultExists(consult_id);
+    int amount_valid = isAmountValid(amount);
 
-
-    if (payment_id && consult_id && patient_id) {
-        Payment payment;
-        payment.id = payment_id;
-        payment.id_consult = consult_id;
-        strcpy(payment.id_pt, patient_id);
-        payment.amount = amount;
-        strcpy(payment.state, state);
-        payment.dateTime = getPayment(payment_id)->dateTime;
-
-        if (!ifPaymentExists(payment_id)) {
-            g_printerr("Payment with ID: %does not exists\n", payment_id);
-            return;
-        }
-        if (!ifPatientExists(patient_id)) {
-            g_printerr("Patient with ID: %s does not exist\n", patient_id);
-            return;
-        }
-
-        if (!ifConsultExists(consult_id)) {
-            g_printerr("Consulting with ID: %d does not exist\n", consult_id);
-            return;
-        }
-
-        modifyPayment(payment);
-        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
+    if (!consult_exists) {
+        gtk_label_set_text(GTK_LABEL(consult_id_label), "consultation does not exists");
     } else {
-        g_printerr("Error: Rendezvous is NULL\n");
+        gtk_label_set_text(GTK_LABEL(consult_id_label), "");
+    }
+
+    if (!amount_valid) {
+        gtk_label_set_text(GTK_LABEL(amount_label), "Invalid amount specified");
+    } else {
+        gtk_label_set_text(GTK_LABEL(amount_label), "");
+    }
+
+    if (consult_exists && amount_valid) {
+        Payment *payment = getPayment(payment_id);
+        Consult *consult = getConsultation(consult_id);
+        payment->id = payment_id;
+        payment->id_consult = consult_id;
+        strcpy(payment->id_pt, consult->id_pt);
+        strcpy(payment->patient_lName, consult->patient_lName);
+        strcpy(payment->patient_fName, consult->patient_fName);
+        payment->amount = amount;
+        strcpy(payment->state, state);
+        modifyPayment(*payment);
+        free(payment);
+        free(consult);
+        window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
     }
 }
 
@@ -1968,30 +1922,19 @@ void edit_payment_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-    GtkWidget *id_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_err_label), "err_label", "label#err_label{color: red;}");
-    GtkWidget *id_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Payment Id");
-    char id_text[10];
-    sprintf(id_text, "%d", payment->id);
-    set_text_entry(id_entry, id_text);
 
     GtkWidget *id_consult_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(id_consult_err_label), "id_consult_err_label", "label#id_consult_err_label{color: red;}");
+
     GtkWidget *id_consult_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(id_consult_entry), "Consult Id");
     char id_consult_text[10];
     sprintf(id_consult_text, "%d", payment->id_consult);
     set_text_entry(id_consult_entry, id_consult_text);
 
-    GtkWidget *id_pt_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
-    GtkWidget *id_pt_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient Id (CIN)");
-    set_text_entry(id_pt_entry, payment->id_pt);
-
     GtkWidget *amount_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(amount_err_label), "amount_err_label", "label#amount_err_label{color: red;}");
+
     GtkWidget *amount_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(amount_entry), "Amount");
     char amount_text[10];
@@ -2001,36 +1944,29 @@ void edit_payment_popup(GtkButton *btn, gpointer data) {
     GtkWidget *state_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(state_err_label), "state_err_label", "label#state_err_label{color: red;}");
     GtkStringList * state_model = gtk_string_list_new((const char *[]){"Pending", "Cancelled", "Confirmed", NULL});
+
     GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(state_model), NULL);
 
-
-    GtkWidget **widgets =  g_new(GtkWidget*, 9);
-    widgets[0] = id_entry;
-    widgets[1] = id_consult_entry;
-    widgets[2] = id_pt_entry;
-    widgets[3] = amount_entry;
-    widgets[4] = state_dropdown;
-    widgets[5] = id_err_label;
-    widgets[6] = id_consult_err_label;
-    widgets[7] = id_pt_err_label;
-    widgets[8] = amount_err_label;
-
+    GtkWidget **widgets =  g_new(GtkWidget*, 5);
+    widgets[0] = id_consult_entry;
+    widgets[1] = amount_entry;
+    widgets[2] = state_dropdown;
+    widgets[3] = id_consult_err_label;
+    widgets[4] = amount_err_label;
 
     // Create the buttons
-    GtkWidget *edit_btn = gtk_button_new_with_label("modifier");
+    GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+
+    g_object_set_data(G_OBJECT(edit_btn), "paymentID", GINT_TO_POINTER(payment->id));
 
     // Connect the cancel button to close the window
     g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_payment), widgets);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), id_consult_err_label);
     gtk_box_append(GTK_BOX(box), id_consult_entry);
-    gtk_box_append(GTK_BOX(box), id_pt_err_label);
-    gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), amount_err_label);
     gtk_box_append(GTK_BOX(box), amount_entry);
     gtk_box_append(GTK_BOX(box), state_dropdown);
@@ -2089,14 +2025,8 @@ void g_update_display_payment(GtkButton *btn, gpointer data) {
         "   padding: 10px 30px;"
         "}");
 
-        Patient* patient = getPatient(payments[i].id_pt);
-        if (patient == NULL) {
-            printf("Patient with ID %s not found\n", payments[i].id_pt);
-            continue;
-        }
-
         char fullName_pt[40];
-        snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", patient->lName, patient->fName);
+        snprintf(fullName_pt, sizeof(fullName_pt), "%s %s", payments[i].patient_lName, payments[i].patient_fName);
         GtkWidget *name_label = gtk_label_new(fullName_pt);
         set_widget_css(GTK_WIDGET(name_label), "header",
         "label#header {"
@@ -2115,7 +2045,7 @@ void g_update_display_payment(GtkButton *btn, gpointer data) {
         "   padding: 10px 30px;"
         "}");
 
-        char date[10];
+        char date[12];
         struct tm tm = *localtime(&payments[i].dateTime);
         snprintf(date, sizeof(date), "%d/%02d/%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
         GtkWidget *date_label = gtk_label_new(date);
@@ -2192,6 +2122,36 @@ void g_update_display_payment(GtkButton *btn, gpointer data) {
 
         gtk_button_set_child(GTK_BUTTON(delete_btn), delete_image);
 
+        if (id_payment_label == NULL) {
+            printf("id_payment_label is NULL\n");
+        }
+        if (id_consult_label == NULL) {
+            printf("id_consult_label is NULL\n");
+        }
+        if (id_pt_label == NULL) {
+            printf("id_pt_label is NULL\n");
+        }
+        if (name_label == NULL) {
+            printf("name_label is NULL\n");
+        }
+        if (amount_label == NULL) {
+            printf("amount_label is NULL\n");
+        }
+        if (date_label == NULL) {
+            printf("date_label is NULL\n");
+        }
+        if (hour_label == NULL) {
+            printf("hour_label is NULL\n");
+        }
+        if (state_label == NULL) {
+            printf("state_label is NULL\n");
+        }
+        if (edit_btn == NULL) {
+            printf("edit_btn is NULL\n");
+        }
+        if (delete_btn == NULL) {
+            printf("delete_btn is NULL\n");
+        }
 
         // Attach labels to the grid for each row of patient data
         gtk_grid_attach(grid, id_payment_label, 0, i + 2, 1, 1);
@@ -2937,8 +2897,8 @@ void g_register(GtkButton *btn, gpointer data) {
 
     int cin_valid = isCinValid(cin);
     int patient_exist = ifPatientExists(cin);
-    int first_name_valid = isTextValid(first_name);
-    int last_name_valid = isTextValid(last_name);
+    int first_name_valid = isNameValid(first_name);
+    int last_name_valid = isNameValid(last_name);
     int age_valid = isAgeValid(age);
     int address_valid = isTextValid(address);
     int phone_valid = isPhoneValid(phone);
@@ -2955,7 +2915,6 @@ void g_register(GtkButton *btn, gpointer data) {
             gtk_label_set_text(GTK_LABEL(register_cin_label), "");
         }
     }
-
 
     if (!first_name_valid) {
         gtk_label_set_text(GTK_LABEL(register_first_name_label), "Must not be left empty");
@@ -3297,7 +3256,6 @@ void set_rendezvous_win() {
         "   padding: 10px 20px;"
         "   margin-top: 50px;"
         "}");
-
 
     gtk_grid_attach(grid, id_header, 0, 1, 1, 1);
     gtk_grid_attach(grid, id_pt_header, 1, 1, 1, 1);

@@ -28,6 +28,6 @@ int is_weekend(Rendezvous RV);
 int ifRVExists(int id);
 int getNumbOfRVs();
 int getRVpos(Rendezvous RV);
-int get_last_id(const char *filename);
+int get_next_valid_RV_id();
 
 #endif

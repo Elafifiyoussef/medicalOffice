@@ -5,14 +5,11 @@
 #include "payment.h"
 #include "cfile.h"
 
-void addPayment(Payment* payment) {
-    if (!ifPaymentExists(payment->id)){
-        payment->dateTime = time(NULL);
-        appendToFile("payments.bin", payment, sizeof(Payment));
-        printf("Payment added\n");
-        return;
+void addPayment(Payment payment) {
+    if (!ifPaymentExists(payment.id)){
+        appendToFile("payments.bin", &payment, sizeof(Payment));
     }
-    printf("Payment already exist\n");
+
 }
 
 void displayPayment(Payment payment) {
@@ -254,4 +251,26 @@ int getNumbOfPayments() {
 
     fclose(file);
     return count; // Return the count of patients
+}
+
+int get_next_valid_invoice_id() {
+    FILE *file = fopen("payments.bin", "rb");
+    if (!file) {
+        // If the file does not exist, start with ID 1
+        return 1;
+    }
+
+    int max_id = 0; // Tracks the maximum ID found in the file
+    Payment temp;
+
+    // Read each patient from the file
+    while (fread(&temp, sizeof(Payment), 1, file)) {
+        if (temp.id > max_id) {
+            max_id = temp.id;
+        }
+    }
+
+    fclose(file);
+    // Return the next valid ID
+    return max_id + 1;
 }

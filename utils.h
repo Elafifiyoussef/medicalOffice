@@ -15,5 +15,6 @@ int find_year_index(const char* target);
 int find_month_index(const char* target);
 int find_day_index(const char* target);
 int find_hour_index(const char* target);
+int isAmountValid(double amount);
 
 #endif //UTILS_H

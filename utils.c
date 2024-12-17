@@ -1,7 +1,9 @@
 #include "utils.h"
 
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
+#include <tgmath.h>
 #include <time.h>
 
 int isTextValid(const char* text) {
@@ -141,4 +143,12 @@ int find_hour_index(const char* target) {
         }
     }
     return -1;
+}
+
+int isAmountValid(double amount) {
+    // Check if the amount is positive
+    if (amount <= 0) {
+        return 0;
+    }
+    return 1; // Valid amount
 }

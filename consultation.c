@@ -252,3 +252,25 @@ int getNumbOfConsults() {
     fclose(file);
     return count; // Return the count of patients
 }
+
+int get_next_valid_consult_id() {
+    FILE *file = fopen("consultation.bin", "rb");
+    if (!file) {
+        // If the file does not exist, start with ID 1
+        return 1;
+    }
+
+    int max_id = 0; // Tracks the maximum ID found in the file
+    Consult temp;
+
+    // Read each patient from the file
+    while (fread(&temp, sizeof(Consult), 1, file)) {
+        if (temp.id > max_id) {
+            max_id = temp.id;
+        }
+    }
+
+    fclose(file);
+    // Return the next valid ID
+    return max_id + 1;
+}

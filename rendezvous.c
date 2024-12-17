@@ -300,32 +300,24 @@ int getRVpos(Rendezvous RV) {
     return -1;
 }
 
-int get_last_id(const char *filename){
-    FILE *file;
-    Rendezvous A;
-    // Open the file in binary read mode
-    file = fopen(filename, "rb");
-    if (file == NULL)
-    {
-        printf("Error opening file!\n");
-        return -1; // Return error code
+int get_next_valid_RV_id() {
+    FILE *file = fopen("rendezvous.bin", "rb");
+    if (!file) {
+        // If the file does not exist, start with ID 1
+        return 1;
     }
 
-    // Seek to the last Rendezvous in the file
-    fseek(file, sizeof(Rendezvous), SEEK_END);
+    int max_id = 0; // Tracks the maximum ID found in the file
+    Rendezvous temp;
 
-    // Read the last Rendezvous
-    if (fread(&A, sizeof(Rendezvous), 1, file) != 1)
-    {
-        printf("Error reading record!\n");
-        fclose(file);
-        return 0; // Return error code
+    // Read each patient from the file
+    while (fread(&temp, sizeof(Rendezvous), 1, file)) {
+        if (temp.id > max_id) {
+            max_id = temp.id;
+        }
     }
 
-    // Close the file
     fclose(file);
-
-    // Return the last id
-    return A.id;
-
+    // Return the next valid ID
+    return max_id + 1;
 }
