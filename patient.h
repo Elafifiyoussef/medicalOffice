@@ -4,7 +4,7 @@
 #define MAX_CIN_LENGTH 10
 #define MAX_NAME_LENGTH 20
 #define MAX_PHONE_NUMBER_LENGTH 20
-#define MAX_ADDRESS_LENGTH 20
+#define MAX_ADDRESS_LENGTH 100
 
 typedef struct {
     char cin[MAX_CIN_LENGTH];

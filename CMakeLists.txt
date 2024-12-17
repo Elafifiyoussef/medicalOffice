@@ -19,6 +19,8 @@ set(SOURCE_FILES
         login.h
         builder.c
         builder.h
+        utils.c
+        utils.h
 )
 
 # Create executable
