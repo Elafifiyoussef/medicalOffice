@@ -22,7 +22,8 @@ typedef enum {
 
 GtkBuilder* get_builder_instance();
 GObject** get_windows_instance();
-void switch_to_window(GtkButton *btn, gpointer user_data) ;
+void switch_to_window(GtkButton *btn, gpointer user_data);
+void switch_to_popup_window(GtkButton *btn, gpointer user_data);
 void set_widget_css(GtkWidget *widget, const char* class_name, const char *css_style);
 void set_text_entry(GtkWidget *entry, const char *text);
 const char* get_text_from_entry(GtkWidget *entry);
@@ -30,6 +31,7 @@ int get_int_from_entry(GtkWidget *entry);
 double get_double_from_entry(GtkWidget *entry);
 const char* get_dropdown_item(GtkDropDown *dropdown);
 void display_string_months(GListModel *model);
+void clear_window_id(GtkWidget *widget, gpointer user_data);
 
 #endif //GTK_FUNCS_H
 

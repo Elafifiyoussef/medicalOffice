@@ -296,8 +296,8 @@ void g_edit_patient(GtkButton *btn, gpointer data) {
     if (!cin_valid) {
         gtk_label_set_text(GTK_LABEL(label_cin), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
     } else {
-        if (!patient_exist) {
-            gtk_label_set_text(GTK_LABEL(label_cin), "patient does not already exists");
+        if (patient_exist) {
+            gtk_label_set_text(GTK_LABEL(label_cin), "patient already exists");
         } else {
             gtk_label_set_text(GTK_LABEL(label_cin), "");
         }
@@ -784,39 +784,24 @@ void g_edit_consult(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[3]);
+    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[0]);
+    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[1]);
+    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[2]);
 
     //Labels
-    GtkLabel *label_id_patient = GTK_LABEL(widgets[4]);
-    GtkLabel *label_symptoms = GTK_LABEL(widgets[5]);
-    GtkLabel *label_diagnosis = GTK_LABEL(widgets[6]);
-    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[7]);
+    GtkLabel *label_symptoms = GTK_LABEL(widgets[3]);
+    GtkLabel *label_diagnosis = GTK_LABEL(widgets[4]);
+    GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[5]);
 
     int consult_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "consultID"));
     // Retrieve values from each entry
-    const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
     const char* symptoms = get_text_from_entry(GTK_WIDGET(entry_symptoms));
     const char* diagnosis = get_text_from_entry(GTK_WIDGET(entry_diagnosis));
     const char* treatmentPlan = get_text_from_entry(GTK_WIDGET(entry_treatmentPlan));
 
-    int cin_valid = isCinValid(patient_id);
-    int patient_exists = ifPatientExists(patient_id);
     int symptoms_valid = isTextValid(symptoms);
     int diagnosis_valid = isTextValid(diagnosis);
     int treatment_plan_valid = isTextValid(treatmentPlan);
-
-    if (!cin_valid) {
-        gtk_label_set_text(GTK_LABEL(label_id_patient), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
-    } else {
-        if (!patient_exists) {
-            gtk_label_set_text(GTK_LABEL(label_id_patient), "patient does not exists");
-        } else {
-            gtk_label_set_text(GTK_LABEL(label_id_patient), "");
-        }
-    }
 
     if (!symptoms_valid) {
         gtk_label_set_text(label_symptoms, "symptoms should not left empty!");
@@ -836,17 +821,15 @@ void g_edit_consult(GtkButton *btn, gpointer data) {
         gtk_label_set_text(label_treatmentPlan, "");
     }
 
-    if (cin_valid && patient_exists && symptoms_valid && diagnosis_valid && treatment_plan_valid) {
+    if (symptoms_valid && diagnosis_valid && treatment_plan_valid) {
         Consult *consult = getConsultation(consult_id);
         consult->id = consult_id;
-        strcpy(consult->id_pt, patient_id);
         strcpy(consult->symptoms, symptoms);
         strcpy(consult->diagnosis, diagnosis);
         strcpy(consult->treatmentPlan, treatmentPlan);
         modifyConsultation(*consult);
+        free(consult);
         window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
-    } else {
-        g_printerr("Error: Consultation information are not correct\n");
     }
 }
 
@@ -867,14 +850,6 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
-
-
-    GtkWidget *id_pt_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
-
-    GtkWidget *id_pt_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient CIN");
-    set_text_entry(id_pt_entry, consult->id_pt);
 
     GtkWidget *symptoms_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(symptoms_err_label), "symptoms_err_label", "label#symptoms_err_label{color: red;}");
@@ -897,15 +872,13 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
     set_text_entry(treatmentPlan_entry, consult->treatmentPlan);
 
-    GtkWidget **widget =  g_new(GtkWidget*, 8);
-    widget[0] = id_pt_entry;
-    widget[1] = symptoms_entry;
-    widget[2] = diagnosis_entry;
-    widget[3] = treatmentPlan_entry;
-    widget[4] = id_pt_err_label;
-    widget[5] = symptoms_err_label;
-    widget[6] = diagnosis_err_label;
-    widget[7] = treatmentPlan_err_label;
+    GtkWidget **widget =  g_new(GtkWidget*, 6);
+    widget[0] = symptoms_entry;
+    widget[1] = diagnosis_entry;
+    widget[2] = treatmentPlan_entry;
+    widget[3] = symptoms_err_label;
+    widget[4] = diagnosis_err_label;
+    widget[5] = treatmentPlan_err_label;
 
     // Create the buttons
     GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
@@ -918,8 +891,6 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_pt_err_label);
-    gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), symptoms_err_label);
     gtk_box_append(GTK_BOX(box), symptoms_entry);
     gtk_box_append(GTK_BOX(box), diagnosis_err_label);
@@ -1133,7 +1104,8 @@ void g_add_rdv(GtkButton *btn, gpointer data) {
     int cin_valid = isCinValid(patient_id);
     int patient_exists = ifPatientExists(patient_id);
     int date_valid = isDateValid(year, month, day);
-    int hour_valid = isHourValid(hour);
+    int hour_valid = isDateTimeValid(year, month, day, hour);
+
 
     if (!cin_valid) {
         gtk_label_set_text(GTK_LABEL(label_id_pt), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
@@ -1167,6 +1139,8 @@ void g_add_rdv(GtkButton *btn, gpointer data) {
 
         int weekend = is_weekend(rendezvous);
         int holiday = is_holiday(rendezvous);
+        int full_hour_reserved = isHourFullyReserved(year, month, day, hour);
+        int same_user_reserved = isSameUserReserved(patient_id , year,  month,  day, hour);
 
         if (holiday) {
             gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
@@ -1174,10 +1148,18 @@ void g_add_rdv(GtkButton *btn, gpointer data) {
             if (weekend) {
                 gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's weekend");
             } else {
-                gtk_label_set_text(GTK_LABEL(label_date), "");
+                if (full_hour_reserved) {
+                    gtk_label_set_text(GTK_LABEL(label_date), "The selected hour is fully booked. Please choose a different time slot.");
+                } else {
+                    if (same_user_reserved) {
+                        gtk_label_set_text(GTK_LABEL(label_date), "You already reserved this hour. Please choose a different time.");
+                    } else {
+                        gtk_label_set_text(GTK_LABEL(label_date), "");
+                    }
+                }
             }
         }
-        if (!weekend && !holiday) {
+        if (!weekend && !holiday && !full_hour_reserved && !same_user_reserved) {
             addRV(rendezvous);
             window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
         }
@@ -1345,21 +1327,18 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_patient = GTK_ENTRY(widgets[0]);
-    GtkDropDown *year_dropdown = GTK_DROP_DOWN(widgets[1]);
-    GtkDropDown *month_dropdown = GTK_DROP_DOWN(widgets[2]);
-    GtkDropDown *day_dropdown = GTK_DROP_DOWN(widgets[3]);
-    GtkDropDown *hour_dropdown = GTK_DROP_DOWN(widgets[4]);
-    GtkDropDown *state_dropdown = GTK_DROP_DOWN(widgets[5]);
+    GtkDropDown *year_dropdown = GTK_DROP_DOWN(widgets[0]);
+    GtkDropDown *month_dropdown = GTK_DROP_DOWN(widgets[1]);
+    GtkDropDown *day_dropdown = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *hour_dropdown = GTK_DROP_DOWN(widgets[3]);
+    GtkDropDown *state_dropdown = GTK_DROP_DOWN(widgets[4]);
 
     //Labels
-    GtkLabel *label_id_pt = GTK_LABEL(widgets[6]);
-    GtkLabel *label_date = GTK_LABEL(widgets[7]);
-    GtkLabel *label_state = GTK_LABEL(widgets[8]);
+    GtkLabel *label_date = GTK_LABEL(widgets[5]);
+    // GtkLabel *label_state = GTK_LABEL(widgets[6]);
 
     int rdv_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "rdvID"));
     // Retrieve values from each entry
-    const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
     const char* rdv_year = get_dropdown_item(year_dropdown);
     int year = strtol(rdv_year, NULL, 10);
     const char* rdv_month = get_dropdown_item(month_dropdown);
@@ -1370,20 +1349,9 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
     int hour = atoi(rdv_hour);
     const char* rdv_state = get_dropdown_item(state_dropdown);
 
-    int cin_valid = isCinValid(patient_id);
-    int patient_exists = ifPatientExists(patient_id);
-    int date_valid = isDateValid(year, month, day);
-    int hour_valid = isHourValid(hour);
 
-    if (!cin_valid) {
-        gtk_label_set_text(GTK_LABEL(label_id_pt), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
-    } else {
-        if (!patient_exists) {
-            gtk_label_set_text(GTK_LABEL(label_id_pt), "patient does not exists");
-        } else {
-            gtk_label_set_text(GTK_LABEL(label_id_pt), "");
-        }
-    }
+    int date_valid = isDateValid(year, month, day);
+    int hour_valid = isDateTimeValid(year, month, day, hour);
 
     if (!date_valid) {
         gtk_label_set_text(GTK_LABEL(label_date), "Date chosen is not valid");
@@ -1395,30 +1363,40 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
         }
     }
 
-    if (cin_valid && patient_exists && date_valid) {
-        Rendezvous rendezvous;
-        rendezvous.id = rdv_id;
-        strcpy(rendezvous.id_pt, patient_id);
-        rendezvous.day = day;
-        rendezvous.month = month;
-        rendezvous.year = year;
-        rendezvous.hour = hour;
-        strcpy(rendezvous.state, rdv_state);
+    if (date_valid && hour_valid) {
+        Rendezvous *rendezvous = getRV(rdv_id);
+        rendezvous->id = rdv_id;
+        rendezvous->day = day;
+        rendezvous->month = month;
+        rendezvous->year = year;
+        rendezvous->hour = hour;
+        strcpy(rendezvous->state, rdv_state);
 
-        int weekend = is_weekend(rendezvous);
-        int holiday = is_holiday(rendezvous);
+        int weekend = is_weekend(*rendezvous);
+        int holiday = is_holiday(*rendezvous);
+        int full_hour_reserved = isHourFullyReserved(year, month, day, hour);
+        int same_user_reserved = isSameUserReserved(rendezvous->id_pt , year,  month,  day, hour);
 
-        if (weekend) {
+        if (holiday) {
             gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
         } else {
-            if (holiday) {
+            if (weekend) {
                 gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's weekend");
             } else {
-                gtk_label_set_text(GTK_LABEL(label_date), "");
+                if (full_hour_reserved) {
+                    gtk_label_set_text(GTK_LABEL(label_date), "The selected hour is fully booked. Please choose a different time slot.");
+                } else {
+                    if (same_user_reserved) {
+                        gtk_label_set_text(GTK_LABEL(label_date), "You already reserved this hour. Please choose a different time.");
+                    } else {
+                        gtk_label_set_text(GTK_LABEL(label_date), "");
+                    }
+                }
             }
         }
-        if (!weekend && !holiday) {
-            modifyRV(rendezvous);
+        if (!weekend && !holiday && !full_hour_reserved && !same_user_reserved) {
+            modifyRV(*rendezvous);
+            free(rendezvous);
             window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
         }
     }
@@ -1442,13 +1420,6 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-    GtkWidget *id_pt_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_pt_err_label), "id_pt_err_label", "label#id_pt_err_label{color: red;}");
-
-    GtkWidget *id_pt_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient CIN");
-    set_text_entry(id_pt_entry, RV->id_pt);
-
     GtkWidget *date_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(date_err_label), "date_err_label", "label#date_err_label{color: red;}");
 
@@ -1467,12 +1438,12 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
     }
     days[31] = NULL;
 
-    const char** hours = malloc(12 * sizeof(char*));
-    for (int i = 0; i < 11; ++i) {
+    const char** hours = malloc(11 * sizeof(char*));
+    for (int i = 0; i < 10; ++i) {
         hours[i] = malloc(3 * sizeof(char));
         sprintf((char*)hours[i], "%dh", i + 8);
     }
-    hours[11] = NULL;
+    hours[10] = NULL;
 
     char year_str[3];
     sprintf(year_str, "%d", RV->year);
@@ -1519,16 +1490,14 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(rdv_state_model), NULL);
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 9);
-    widgets[0] = id_pt_entry;
-    widgets[1] = year_dropdown;
-    widgets[2] = month_dropdown;
-    widgets[3] = day_dropdown;
-    widgets[4] = hour_dropdown;
-    widgets[5] = state_dropdown;
-    widgets[6] = id_pt_err_label;
-    widgets[7] = date_err_label;
-    widgets[8] = state_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 7);
+    widgets[0] = year_dropdown;
+    widgets[1] = month_dropdown;
+    widgets[2] = day_dropdown;
+    widgets[3] = hour_dropdown;
+    widgets[4] = state_dropdown;
+    widgets[5] = date_err_label;
+    widgets[6] = state_err_label;
 
 
     // Create the buttons
@@ -1542,8 +1511,6 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_pt_err_label);
-    gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), date_err_label);
     gtk_box_append(GTK_BOX(box), dateBox);
     gtk_box_append(GTK_BOX(box), state_err_label);
@@ -1715,13 +1682,16 @@ void g_add_payment(GtkButton *btn, gpointer data) {
     //Entries
     GtkEntry *entry_consult_id = GTK_ENTRY(widgets[0]);
     GtkEntry *entry_amount = GTK_ENTRY(widgets[1]);
+    //Dropdown
+    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[2]);
     //Labels
-    GtkLabel *label_consult_id = GTK_LABEL(widgets[2]);
-    GtkLabel *label_amount = GTK_LABEL(widgets[3]);
+    GtkLabel *label_consult_id = GTK_LABEL(widgets[3]);
+    GtkLabel *label_amount = GTK_LABEL(widgets[4]);
 
     // Retrieve values from each entry
     int consult_id = get_int_from_entry(GTK_WIDGET(entry_consult_id));
     double amount = get_double_from_entry(GTK_WIDGET(entry_amount));
+    const char* state = get_dropdown_item(dropdown_state);
 
     int consult_exists = ifConsultExists(consult_id);
 
@@ -1748,7 +1718,7 @@ void g_add_payment(GtkButton *btn, gpointer data) {
         strcpy(payment->patient_lName, consult->patient_lName);
         strcpy(payment->patient_fName, consult->patient_fName);
         payment->amount = amount;
-        strcpy(payment->state, "pending");
+        strcpy(payment->state, state);
         payment->dateTime = time(NULL);
         addPayment(*payment);
         free(consult);
@@ -1785,11 +1755,15 @@ void add_payment_popup(GtkButton *btn, gpointer data) {
     GtkWidget *amount_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(amount_entry), "Amount");
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 4);
+    GtkStringList * state_model = gtk_string_list_new((const char *[]){"Payed", "Not payed", NULL});
+    GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(state_model), NULL);
+
+    GtkWidget **widgets =  g_new(GtkWidget*, 5);
     widgets[0] = id_consult_entry;
     widgets[1] = amount_entry;
-    widgets[2] = id_consult_err_label;
-    widgets[3] = amount_err_label;
+    widgets[2] = state_dropdown;
+    widgets[3] = id_consult_err_label;
+    widgets[4] = amount_err_label;
 
     // Create the buttons
     GtkWidget *add_btn = gtk_button_new_with_label("Add");
@@ -1803,6 +1777,7 @@ void add_payment_popup(GtkButton *btn, gpointer data) {
     // Append widgets to the box
     gtk_box_append(GTK_BOX(box), id_consult_err_label);
     gtk_box_append(GTK_BOX(box), id_consult_entry);
+    gtk_box_append(GTK_BOX(box), state_dropdown);
     gtk_box_append(GTK_BOX(box), amount_err_label);
     gtk_box_append(GTK_BOX(box), amount_entry);
     gtk_box_append(GTK_BOX(box), add_btn);
@@ -1858,28 +1833,18 @@ void g_edit_payment(GtkButton *btn, gpointer data) {
     }
 
     //Entries
-    GtkEntry *entry_id_consult = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_amount = GTK_ENTRY(widgets[1]);
+    GtkEntry *entry_amount = GTK_ENTRY(widgets[0]);
     // Dropdowns
-    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *dropdown_state = GTK_DROP_DOWN(widgets[1]);
     //Labels
-    GtkLabel *consult_id_label = GTK_LABEL(widgets[3]);
-    GtkLabel *amount_label = GTK_LABEL(widgets[4]);
+    GtkLabel *amount_label = GTK_LABEL(widgets[2]);
 
     int payment_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "paymentID"));
     // Retrieve values from each entry
-    int consult_id = get_int_from_entry(GTK_WIDGET(entry_id_consult));
     double amount = get_double_from_entry(GTK_WIDGET(entry_amount));
     const char* state = get_dropdown_item(dropdown_state);
 
-    int consult_exists = ifConsultExists(consult_id);
     int amount_valid = isAmountValid(amount);
-
-    if (!consult_exists) {
-        gtk_label_set_text(GTK_LABEL(consult_id_label), "consultation does not exists");
-    } else {
-        gtk_label_set_text(GTK_LABEL(consult_id_label), "");
-    }
 
     if (!amount_valid) {
         gtk_label_set_text(GTK_LABEL(amount_label), "Invalid amount specified");
@@ -1887,14 +1852,9 @@ void g_edit_payment(GtkButton *btn, gpointer data) {
         gtk_label_set_text(GTK_LABEL(amount_label), "");
     }
 
-    if (consult_exists && amount_valid) {
+    if (amount_valid) {
         Payment *payment = getPayment(payment_id);
-        Consult *consult = getConsultation(consult_id);
-        payment->id = payment_id;
-        payment->id_consult = consult_id;
-        strcpy(payment->id_pt, consult->id_pt);
-        strcpy(payment->patient_lName, consult->patient_lName);
-        strcpy(payment->patient_fName, consult->patient_fName);
+        Consult *consult = getConsultation(payment->id_consult);
         payment->amount = amount;
         strcpy(payment->state, state);
         modifyPayment(*payment);
@@ -1922,16 +1882,6 @@ void edit_payment_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-
-    GtkWidget *id_consult_err_label = gtk_label_new("");
-    set_widget_css(GTK_WIDGET(id_consult_err_label), "id_consult_err_label", "label#id_consult_err_label{color: red;}");
-
-    GtkWidget *id_consult_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_consult_entry), "Consult Id");
-    char id_consult_text[10];
-    sprintf(id_consult_text, "%d", payment->id_consult);
-    set_text_entry(id_consult_entry, id_consult_text);
-
     GtkWidget *amount_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(amount_err_label), "amount_err_label", "label#amount_err_label{color: red;}");
 
@@ -1943,16 +1893,17 @@ void edit_payment_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *state_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(state_err_label), "state_err_label", "label#state_err_label{color: red;}");
-    GtkStringList * state_model = gtk_string_list_new((const char *[]){"Pending", "Cancelled", "Confirmed", NULL});
 
+    GtkStringList * state_model = gtk_string_list_new((const char *[]){"Payed", "Not payed", NULL});
+
+    int state_pos = find_payment_state_index(payment->state);
     GtkWidget *state_dropdown = gtk_drop_down_new(G_LIST_MODEL(state_model), NULL);
+    gtk_drop_down_set_selected(GTK_DROP_DOWN(state_dropdown),state_pos);
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 5);
-    widgets[0] = id_consult_entry;
-    widgets[1] = amount_entry;
-    widgets[2] = state_dropdown;
-    widgets[3] = id_consult_err_label;
-    widgets[4] = amount_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 3);
+    widgets[0] = amount_entry;
+    widgets[1] = state_dropdown;
+    widgets[2] = amount_err_label;
 
     // Create the buttons
     GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
@@ -1965,8 +1916,6 @@ void edit_payment_popup(GtkButton *btn, gpointer data) {
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_consult_err_label);
-    gtk_box_append(GTK_BOX(box), id_consult_entry);
     gtk_box_append(GTK_BOX(box), amount_err_label);
     gtk_box_append(GTK_BOX(box), amount_entry);
     gtk_box_append(GTK_BOX(box), state_dropdown);
@@ -2171,7 +2120,9 @@ void g_update_display_payment(GtkButton *btn, gpointer data) {
 }
 
 //===================================================================//
+//===================================================================//
 // User Rendezvous functionalities
+//===================================================================//
 //===================================================================//
 
 void g_request_rdv(GtkButton *btn, gpointer data) {
@@ -2184,22 +2135,15 @@ void g_request_rdv(GtkButton *btn, gpointer data) {
         return;
     }
     //Entries
-    GtkEntry *entry_id_rdv = GTK_ENTRY(widgets[0]);
-    GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[1]);
-    GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[2]);
-    GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[3]);
-    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[4]);
+    GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[0]);
+    GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[1]);
+    GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[3]);
     //Labels
-    GtkLabel *label_state = GTK_LABEL(widgets[5]);
-    GtkLabel *label_err_date = GTK_LABEL(widgets[6]);
-
-    if (!entry_id_rdv || !dropdown_year || !dropdown_month || !dropdown_day) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
+    GtkLabel *label_state = GTK_LABEL(widgets[4]);
+    GtkLabel *label_date = GTK_LABEL(widgets[5]);
 
     // Retrieve values from each entry
-    int rdv_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
     const char* rdv_year = get_dropdown_item(dropdown_year);
     int year = strtol(rdv_year, NULL, 10);
     const char* rdv_month = get_dropdown_item(dropdown_month);
@@ -2210,41 +2154,56 @@ void g_request_rdv(GtkButton *btn, gpointer data) {
     int hour = atoi(rdv_hour);
     const char* rdv_state = gtk_label_get_text(label_state);
 
-    if (!isDateValid(year, month, day)) {
-        gtk_label_set_text(label_err_date, "Date chosen is not valid");
-        return;
-    }
-    gtk_label_set_text(label_err_date, "");
+    int date_valid = isDateValid(year, month, day);
+    int hour_valid = isDateTimeValid(year, month, day, hour);
+    printf("hour = %d", hour);
 
-    if (!isHourValid(hour)) {
-        printf("Invalid hour\n");
-        return;
+    if (!date_valid) {
+        gtk_label_set_text(GTK_LABEL(label_date), "Date chosen is not valid");
+    } else {
+        if (!hour_valid) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Hour chosen is not valid");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_date), "");
+        }
     }
 
-    if (rdv_id != 0) {
+    if (date_valid && hour_valid) {
         Rendezvous rendezvous;
-        rendezvous.id = rdv_id;
+        rendezvous.id = get_next_valid_RV_id();
         strcpy(rendezvous.id_pt, cin);
         rendezvous.day = day;
         rendezvous.month = month;
         rendezvous.year = year;
         rendezvous.hour = hour;
         strcpy(rendezvous.state, rdv_state);
-        if (is_holiday(rendezvous)) {
-            printf("Invalid Rendezvous: it's a holiday\n");
-            return;
-        }
-        if (is_weekend(rendezvous)) {
-            printf("Invalid Rendezvous: it's weekend\n");
-            return;
-        }
-        if (ifPatientExists(cin)) {
-            addRV(rendezvous);
+
+        int weekend = is_weekend(rendezvous);
+        int holiday = is_holiday(rendezvous);
+        int full_hour_reserved = isHourFullyReserved(year, month, day, hour);
+        int same_user_reserved = isSameUserReserved(cin , year,  month,  day, hour);
+
+        if (holiday) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
         } else {
-            g_printerr("Patient with ID: %s does not exist\n", cin);
+            if (weekend) {
+                gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's weekend");
+            } else {
+                if (full_hour_reserved) {
+                    gtk_label_set_text(GTK_LABEL(label_date), "The selected hour is fully booked. Please choose a different time slot.");
+                } else {
+                    if (same_user_reserved) {
+                        gtk_label_set_text(GTK_LABEL(label_date), "You already reserved this hour. Please choose a different time.");
+                    } else {
+                        gtk_label_set_text(GTK_LABEL(label_date), "");
+                    }
+                }
+            }
         }
-    } else {
-        g_printerr("Error: Rendezvous is NULL\n");
+        if (!weekend && !holiday && !full_hour_reserved && !same_user_reserved) {
+            addRV(rendezvous);
+            window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
+        }
     }
 }
 
@@ -2254,14 +2213,11 @@ void request_rdv_popup(GtkButton *btn, gpointer data) {
     gtk_window_set_title(GTK_WINDOW(popup_window), "Request a Rendezvous");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
 
+    gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
+
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
-
-    GtkWidget *id_err_label = gtk_label_new(""); //<---- will be eventually removed
-
-    GtkWidget *id_entry = gtk_entry_new(); //<---- will be eventually removed
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Rendezvous Id");
 
     GtkWidget *date_err_label = gtk_label_new("");
 
@@ -2315,18 +2271,17 @@ void request_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *state_label = gtk_label_new("Pending");
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 9);
-    widgets[0] = id_entry;
-    widgets[1] = year_dropdown;
-    widgets[2] = month_dropdown;
-    widgets[3] = day_dropdown;
-    widgets[4] = hour_dropdown;
-    widgets[5] = state_label;
-    widgets[6] = date_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 6);
+    widgets[0] = year_dropdown;
+    widgets[1] = month_dropdown;
+    widgets[2] = day_dropdown;
+    widgets[3] = hour_dropdown;
+    widgets[4] = state_label;
+    widgets[5] = date_err_label;
 
     // Create the buttons
-    GtkWidget *add_btn = gtk_button_new_with_label("request");
-    GtkWidget *cancel_btn = gtk_button_new_with_label("cancel");
+    GtkWidget *add_btn = gtk_button_new_with_label("Request");
+    GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
     char *cin = data;
     g_object_set_data(G_OBJECT(add_btn), "UserID", cin);
@@ -2335,8 +2290,6 @@ void request_rdv_popup(GtkButton *btn, gpointer data) {
     g_signal_connect(add_btn, "clicked", G_CALLBACK(g_request_rdv), widgets);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), date_err_label);
     gtk_box_append(GTK_BOX(box), dateBox);
     gtk_box_append(GTK_BOX(box), state_err_label);
@@ -2364,6 +2317,8 @@ void cancel_rdv_popup(GtkButton *btn, gpointer data) {
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "confirmer la suppression ");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
+
+    gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
@@ -2396,25 +2351,17 @@ void g_reschedule_rdv(GtkButton *btn, gpointer data) {
         return;
     }
     //Entries
-    GtkEntry *entry_id_rdv = GTK_ENTRY(widgets[0]);
-    GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[1]);
-    GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[2]);
-    GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[3]);
-    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[4]);
+
+    GtkDropDown *dropdown_year = GTK_DROP_DOWN(widgets[0]);
+    GtkDropDown *dropdown_month = GTK_DROP_DOWN(widgets[1]);
+    GtkDropDown *dropdown_day = GTK_DROP_DOWN(widgets[2]);
+    GtkDropDown *dropdown_hour = GTK_DROP_DOWN(widgets[3]);
     //Labels
-    GtkLabel *label_state = GTK_LABEL(widgets[5]);
-    GtkLabel *label_err_date = GTK_LABEL(widgets[6]);
+    // GtkLabel *label_state = GTK_LABEL(widgets[4]);
+    GtkLabel *label_date = GTK_LABEL(widgets[5]);
 
-    if (entry_id_rdv == NULL) {
-        printf("Error: entry_id_rdv is NULL\n");
-    }
-    if (!entry_id_rdv || !dropdown_year || !dropdown_month || !dropdown_day || !dropdown_hour) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
-
+    int rdv_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "rdvID"));
     // Retrieve values from each entry
-    int rdv_id = get_int_from_entry(GTK_WIDGET(entry_id_rdv));
     const char* rdv_year = get_dropdown_item(dropdown_year);
     int year = strtol(rdv_year, NULL, 10);
     const char* rdv_month = get_dropdown_item(dropdown_month);
@@ -2423,44 +2370,55 @@ void g_reschedule_rdv(GtkButton *btn, gpointer data) {
     int day = strtol(rdv_day, NULL, 10);
     const char* rdv_hour = get_dropdown_item(dropdown_hour);
     int hour = atoi(rdv_hour);
-    // const char* rdv_state = gtk_label_get_text(label_state);
 
-    if (!isDateValid(year, month, day)) {
-        gtk_label_set_text(label_err_date, "Date chosen is not valid");
-        return;
-    }
-    gtk_label_set_text(label_err_date, "");
+    int date_valid = isDateValid(year, month, day);
+    int hour_valid = isDateTimeValid(year, month, day, hour);
 
-    if (!isHourValid(hour)) {
-        printf("Invalid hour\n");
-        return;
-    }
-
-    if (rdv_id != 0) {
-        Rendezvous rendezvous;
-        rendezvous.id = rdv_id;
-        strcpy(rendezvous.id_pt, cin);
-        rendezvous.day = day;
-        rendezvous.month = month;
-        rendezvous.year = year;
-        rendezvous.hour = hour;
-        strcpy(rendezvous.state, "Pending");
-
-        if (is_holiday(rendezvous)) {
-            printf("Invalid Rendezvous: it's a holiday\n");
-            return;
-        }
-        if (is_weekend(rendezvous)) {
-            printf("Invalid Rendezvous: it's weekend\n");
-            return;
-        }
-        if (ifPatientExists(cin)) {
-            modifyRV(rendezvous);
-        } else {
-            g_printerr("Patient with ID: %s does not exist\n", cin);
-        }
+    if (!date_valid) {
+        gtk_label_set_text(GTK_LABEL(label_date), "Date chosen is not valid");
     } else {
-        g_printerr("Error: Rendezvous is NULL\n");
+        if (!hour_valid) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Hour chosen is not valid");
+        } else {
+            gtk_label_set_text(GTK_LABEL(label_date), "");
+        }
+    }
+
+    if (date_valid && hour_valid) {
+        Rendezvous *rendezvous = getRV(rdv_id);
+        rendezvous->day = day;
+        rendezvous->month = month;
+        rendezvous->year = year;
+        rendezvous->hour = hour;
+        strcpy(rendezvous->state, "Pending");
+
+        int weekend = is_weekend(*rendezvous);
+        int holiday = is_holiday(*rendezvous);
+        int full_hour_reserved = isHourFullyReserved(year, month, day, hour);
+        int same_user_reserved = isSameUserReserved(rendezvous->id_pt , year,  month,  day, hour);
+
+        if (holiday) {
+            gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
+        } else {
+            if (weekend) {
+                gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's weekend");
+            } else {
+                if (full_hour_reserved) {
+                    gtk_label_set_text(GTK_LABEL(label_date), "The selected hour is fully booked. Please choose a different time slot.");
+                } else {
+                    if (same_user_reserved) {
+                        gtk_label_set_text(GTK_LABEL(label_date), "You already reserved this hour. Please choose a different time.");
+                    } else {
+                        gtk_label_set_text(GTK_LABEL(label_date), "");
+                    }
+                }
+            }
+        }
+        if (!weekend && !holiday && !full_hour_reserved && !same_user_reserved) {
+            modifyRV(*rendezvous);
+            free(rendezvous);
+            window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
+        }
     }
 }
 
@@ -2472,17 +2430,11 @@ void reschedule_rdv_popup(GtkButton *btn, gpointer data) {
     gtk_window_set_title(GTK_WINDOW(popup_window), "reschedule rendezvous");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
 
+    gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
+
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
-
-    GtkWidget *id_err_label = gtk_label_new(""); //<---- will be eventually removed
-
-    GtkWidget *id_entry = gtk_entry_new(); //<---- will be eventually removed
-    gtk_entry_set_placeholder_text(GTK_ENTRY(id_entry), "Rendezvous Id");
-    char id_text[10];
-    sprintf(id_text, "%d", RV->id);
-    set_text_entry(id_entry, id_text);
 
     GtkWidget *date_err_label = gtk_label_new("");
 
@@ -2553,31 +2505,26 @@ void reschedule_rdv_popup(GtkButton *btn, gpointer data) {
     GtkWidget *state_label = gtk_label_new(state_text);
 
 
-    GtkWidget **widgets =  g_new(GtkWidget*, 11);
-    widgets[0] = id_entry;
-    widgets[1] = year_dropdown;
-    widgets[2] = month_dropdown;
-    widgets[3] = day_dropdown;
-    widgets[4] = hour_dropdown;
-    widgets[5] = state_label;
-    widgets[6] = date_err_label;
+    GtkWidget **widgets =  g_new(GtkWidget*, 6);
+    widgets[0] = year_dropdown;
+    widgets[1] = month_dropdown;
+    widgets[2] = day_dropdown;
+    widgets[3] = hour_dropdown;
+    widgets[4] = state_label;
+    widgets[5] = date_err_label;
 
 
     // Create the buttons
-    GtkWidget *reschedule_btn = gtk_button_new_with_label("reschedule");
+    GtkWidget *reschedule_btn = gtk_button_new_with_label("Reschedule");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
-    char cin[MAX_CIN_LENGTH];
-    strcpy(cin, RV->id_pt);
-    g_object_set_data(G_OBJECT(reschedule_btn), "UserID", cin);
+    g_object_set_data(G_OBJECT(reschedule_btn), "rdvID", GINT_TO_POINTER(RV->id));
 
     // Connect the cancel button to close the window
     g_signal_connect(reschedule_btn, "clicked", G_CALLBACK(g_reschedule_rdv), widgets);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
-    gtk_box_append(GTK_BOX(box), id_err_label);
-    gtk_box_append(GTK_BOX(box), id_entry);
     gtk_box_append(GTK_BOX(box), date_err_label);
     gtk_box_append(GTK_BOX(box), dateBox);
     gtk_box_append(GTK_BOX(box), state_err_label);
@@ -2622,15 +2569,23 @@ void g_update_user_rdv_display(GtkButton *btn, gpointer data) {
         snprintf(dateTime, sizeof(dateTime), "%d/%d/%d at %dh", RVs[i].year, RVs[i].month, RVs[i].day, RVs[i].hour);
         GtkWidget *dateTime_label = gtk_label_new(dateTime);
 
-        set_widget_css(GTK_WIDGET(dateTime_label), "datetime-label", "label#datetime-label { font-size: 24px; }");
-
+        set_widget_css(GTK_WIDGET(dateTime_label), "datetime-label",
+        "label#datetime-label {"
+        "   font-size: 36px;"
+        "}");
 
         GtkWidget *state_label = gtk_label_new(RVs[i].state);
 
-        GtkWidget *edit_btn = gtk_button_new_with_label("edit");
-        GtkWidget *cancel_btn = gtk_button_new_with_label("cancel");
-
         GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+        set_widget_css(GTK_WIDGET(box), "box",
+        "box#box {"
+        "   min-width: 620px;"
+        "   margin-top: 10px;"
+        "   padding-left: 10px;"
+        "   padding-bottom: 5px;"
+        "   border: 1px dashed #d8d5f7;"
+        "   border-right: none;"
+        "}");
 
         gtk_box_append(GTK_BOX(box), dateTime_label);
         gtk_box_append(GTK_BOX(box), state_label);
@@ -2638,8 +2593,61 @@ void g_update_user_rdv_display(GtkButton *btn, gpointer data) {
         gtk_widget_set_halign(dateTime_label, GTK_ALIGN_START);
         gtk_widget_set_halign(state_label, GTK_ALIGN_START);
 
+        GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
+        set_widget_css(GTK_WIDGET(edit_btn), "btn",
+        "button#btn {"
+        "   border: 1px dashed #d8d5f7;"
+        "   border-right: none;"
+        "   border-left: none;"
+        "   padding: 10px 30px;"
+        "   font-size: 18px;"
+        "   border-radius: 0px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   margin-top: 10px;"
+        "}");
+
+        GtkWidget *edit_image = gtk_image_new_from_file("imgs/edit_2.svg");
+        gtk_image_set_pixel_size(GTK_IMAGE(edit_image), 25);
+        set_widget_css(GTK_WIDGET(edit_image), "edit_image",
+        "image#edit_image {"
+        "   transition: transform 0.3s;"
+        "}"
+        "image#edit_image:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+        "}");
+
+        gtk_button_set_child(GTK_BUTTON(edit_btn), edit_image);
+
+        GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
+        set_widget_css(GTK_WIDGET(cancel_btn), "btn",
+        "button#btn {"
+        "   border: 1px dashed #d8d5f7;"
+        "   border-left: none;"
+        "   padding: 10px 30px;"
+        "   font-size: 18px;"
+        "   border-radius: 0px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   margin-top: 10px;"
+        "}");
+
+        GtkWidget *cancel_image = gtk_image_new_from_file("imgs/delete_2.svg");
+        gtk_image_set_pixel_size(GTK_IMAGE(cancel_image), 25);
+        set_widget_css(GTK_WIDGET(cancel_image), "delete_img",
+        "image#delete_img {"
+        "   transition: transform 0.3s;"
+        "}"
+        "image#delete_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+        "}");
+
+        gtk_button_set_child(GTK_BUTTON(cancel_btn), cancel_image);
+
         // Attach labels to the grid for each row of patient data
-        gtk_grid_attach(grid, box, 0, i + 2, 3, 1);
+        gtk_grid_attach(grid, box, 0, i + 2, 6, 1);
         gtk_grid_attach(grid, edit_btn, 6, i + 2, 1, 1);
         gtk_grid_attach(grid, cancel_btn, 7, i + 2, 1, 1);
 
@@ -2659,6 +2667,8 @@ void show_consult_info_popup(GtkButton *btn, gpointer data) {
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "consultation info");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
+
+    gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *grid = gtk_grid_new();
 
@@ -2705,13 +2715,9 @@ void g_update_user_consult_display(GtkButton *btn, gpointer data) {
     char *cin = g_object_get_data(G_OBJECT(wins[USER_MENU]), "UserID");
 
     Consult *consults = getConsultsByCin(cin);
-    if (consults == NULL) {
-        printf("Error getting user consults\n");
-        return;
-    }
     int consult_count = getNumbOfConsultsByCin(cin);
 
-    int col= 0, row = 2;
+    int col = 0, row = 2;
     while (gtk_grid_get_child_at(grid, col, row) != NULL) {
         while (col < 8) {
             GtkWidget *child = gtk_grid_get_child_at(grid, col, row);
@@ -2726,22 +2732,63 @@ void g_update_user_consult_display(GtkButton *btn, gpointer data) {
 
     for (int i = 0; i < consult_count; i++) {
         char dateTime_text[50];
-
         time_t dateTime = consults[i].dateTime;
         struct tm consult_dtm = *localtime(&dateTime);
-        snprintf(dateTime_text, sizeof(dateTime_text), "Consultation on %d/%d/%d at %0d:%0d", consult_dtm.tm_year + 1900, consult_dtm.tm_mon + 1, consult_dtm.tm_mday, consult_dtm.tm_hour, consult_dtm.tm_min);
+        snprintf(dateTime_text, sizeof(dateTime_text),
+            "Consultation on %d/%d/%d at %02d:%02d",
+            consult_dtm.tm_year + 1900, consult_dtm.tm_mon + 1, consult_dtm.tm_mday,
+            consult_dtm.tm_hour, consult_dtm.tm_min);
 
         GtkWidget *dateTime_label = gtk_label_new(dateTime_text);
+        gtk_widget_set_halign(dateTime_label, GTK_ALIGN_START);
 
-        GtkWidget *info_btn = gtk_button_new_with_label("more info");
+        // CSS for style
+        set_widget_css(GTK_WIDGET(dateTime_label), "consult-label",
+            "label#consult-label {"
+            // "   background: #eee;"
+            "   min-width: 620px;"
+            "   margin-top: 10px;"
+            "   padding-left: 10px;"
+            "   font-size: 24px;"
+            "   border: 1px dashed #b5e5dc;"
+            "   border-right: none;"
+            "}");
 
-        // Attach labels to the grid for each row of patient data
-        gtk_grid_attach(grid, dateTime_label, 0, i + 2, 4, 1);
-        gtk_grid_attach(grid, info_btn, 7, i + 2, 1, 1);
+        GtkWidget *info_btn = gtk_button_new_with_label("More info");
+        set_widget_css(GTK_WIDGET(info_btn), "btn",
+        "button#btn {"
+        "   border: 1px dashed #b5e5dc;"
+        "   border-left: none;"
+        "   padding: 15px 30px;"
+        "   font-size: 18px;"
+        "   border-radius: 0px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   margin-top: 10px;"
+        "}");
 
+        GtkWidget *info_image = gtk_image_new_from_file("imgs/delete_2.svg");
+        gtk_image_set_pixel_size(GTK_IMAGE(info_image), 25);
+        set_widget_css(GTK_WIDGET(info_image), "delete_img",
+        "image#delete_img {"
+        "   transition: transform 0.3s;"
+        "}"
+        "image#delete_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+        "}");
+
+        gtk_button_set_child(GTK_BUTTON(info_btn), info_image);
+
+        // Attach widgets to the grid
+        gtk_grid_attach(grid, dateTime_label, 0, i + 2, 5, 1);
+        gtk_grid_attach(grid, info_btn, 6, i + 2, 2, 1);
+
+        // Connect signals to the button
         g_signal_connect(info_btn, "clicked", G_CALLBACK(show_consult_info_popup), &consults[i]);
     }
 }
+
 
 //===================================================================//
 // User payment functionalities
@@ -2753,6 +2800,8 @@ void show_bill_info_popup(GtkButton *btn, gpointer data) {
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "payment info");
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
+
+    gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *grid = gtk_grid_new();
 
@@ -2790,16 +2839,12 @@ void show_bill_info_popup(GtkButton *btn, gpointer data) {
 }
 
 void g_update_user_bill_display(GtkButton *btn, gpointer data) {
-    GtkGrid *grid = GTK_GRID(data);
 
+    GtkGrid *grid = GTK_GRID(data);
     GObject **wins = get_windows_instance();
     char *cin = g_object_get_data(G_OBJECT(wins[USER_MENU]), "UserID");
 
     Payment *payment = getPaymentsByCin(cin);
-    if (payment == NULL) {
-        printf("Error getting user Payment bills\n");
-        return;
-    }
     int bills_count = getNumbOfBillsByCin(cin);
 
     int col= 0, row = 2;
@@ -2823,12 +2868,50 @@ void g_update_user_bill_display(GtkButton *btn, gpointer data) {
         snprintf(dateTime_text, sizeof(dateTime_text), "Consultation bill (%d/%d/%d)", payment_dtm.tm_year + 1900, payment_dtm.tm_mon + 1, payment_dtm.tm_mday);
 
         GtkWidget *dateTime_label = gtk_label_new(dateTime_text);
+        gtk_widget_set_halign(dateTime_label, GTK_ALIGN_START);
+
+
+        // CSS for style
+        set_widget_css(GTK_WIDGET(dateTime_label), "consult-label",
+            "label#consult-label {"
+            // "   background: #eee;"
+            "   min-width: 620px;"
+            "   margin-top: 10px;"
+            "   padding-left: 10px;"
+            "   font-size: 24px;"
+            "   border: 1px dashed #e8d1c1;"
+            "   border-right: none;"
+            "}");
 
         GtkWidget *info_btn = gtk_button_new_with_label("more info");
+        set_widget_css(GTK_WIDGET(info_btn), "btn",
+        "button#btn {"
+        "   border: 1px dashed #e8d1c1;"
+        "   border-left: none;"
+        "   padding: 15px 30px;"
+        "   font-size: 18px;"
+        "   border-radius: 0px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   margin-top: 10px;"
+        "}");
+
+        GtkWidget *info_image = gtk_image_new_from_file("imgs/delete_4.svg");
+        gtk_image_set_pixel_size(GTK_IMAGE(info_image), 25);
+        set_widget_css(GTK_WIDGET(info_image), "delete_img",
+        "image#delete_img {"
+        "   transition: transform 0.3s;"
+        "}"
+        "image#delete_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+        "}");
+
+        gtk_button_set_child(GTK_BUTTON(info_btn), info_image);
 
         // Attach labels to the grid for each row of patient data
         gtk_grid_attach(grid, dateTime_label, 0, i + 2, 4, 1);
-        gtk_grid_attach(grid, info_btn, 7, i + 2, 1, 1);
+        gtk_grid_attach(grid, info_btn, 6, i + 2, 1, 1);
 
         g_signal_connect(info_btn, "clicked", G_CALLBACK(show_bill_info_popup), &payment[i]);
     }
@@ -3810,6 +3893,8 @@ void set_menu_win_objs() {
     "grid#menu_grid {"
         "   min-width: 800px;"
         "}");
+    gtk_widget_set_valign(GTK_WIDGET(menu_grid), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(menu_grid), GTK_ALIGN_CENTER);
     //-------------------------------------
     //----------Patient section
     //-------------------------------------
@@ -3867,6 +3952,7 @@ void set_menu_win_objs() {
 
     //-------------------------------------
     gtk_button_set_child(GTK_BUTTON(patient_btn), patient_overlay);
+
     //-------------------------------------
     //----------Rendezvous section
     //-------------------------------------
@@ -3932,8 +4018,8 @@ void set_menu_win_objs() {
     //-------------------------------------
 
     GObject *consult_btn = gtk_builder_get_object(builder, "consult_btn");
-    gtk_widget_set_vexpand_set(GTK_WIDGET(rdv_btn), TRUE);
-    if (rdv_btn == NULL) {
+    gtk_widget_set_vexpand_set(GTK_WIDGET(consult_btn), TRUE);
+    if (consult_btn == NULL) {
         g_printerr("Failed to get 'consult_btn' from builder UI\n");
     }
     set_widget_css(GTK_WIDGET(consult_btn), "consult_btn",
@@ -4161,43 +4247,228 @@ void set_user_info_objs() {
 
 // set user rendezvous windows objects
 void set_user_rendezvous_win() {
-
-    GtkBuilder* builder = get_builder_instance();
+    GtkBuilder *builder = get_builder_instance();
     GObject **wins = get_windows_instance();
 
-    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "user_grid_rendezvous"));
+    GtkWindow *user_rendezvous_window = GTK_WINDOW(gtk_builder_get_object(builder, "user_rendezvous_window"));
+    if (!user_rendezvous_window) {
+        g_printerr("Failed to get 'user rendezvous window' from builder UI file\n");
+        return;
+    }
+    gtk_window_maximize(user_rendezvous_window);
+
+    GtkScrolledWindow *scrolled_window = GTK_SCROLLED_WINDOW(gtk_builder_get_object(builder, "user_rendezvous_scrolled_window"));
+
+    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "user_rendezvous_grid"));
+    gtk_widget_set_halign(GTK_WIDGET(grid), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(grid), GTK_ALIGN_START);
+
+    set_widget_css(GTK_WIDGET(grid), "user_rendezvous_grid",
+    "grid#user_rendezvous_grid {"
+        "   min-width: 800px;"
+        "   min-height: 600px;"
+        "   margin-top: 50px;"
+        "   margin-bottom: 50px;"
+    "}");
+
+    GtkWidget *empty_label = gtk_label_new("");
+    set_widget_css(GTK_WIDGET(empty_label), "empty_label",
+    "label#empty_label {"
+        "   margin-top: 50px;"
+    "}");
+
+    gtk_grid_attach(grid, empty_label, 0, 1, 1, 1);
+
+    // Create and style buttons
+    GObject *reload_btn = gtk_builder_get_object(builder, "user_rendezvous_reload_btn");
+    gtk_widget_set_size_request(GTK_WIDGET(reload_btn), 80, 80);
+    set_widget_css(GTK_WIDGET(reload_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border: none;"
+        "   border-radius: 100px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   transition: background 0.3s;"
+    "}");
+
+    GtkWidget *reload_image = gtk_image_new_from_file("imgs/reload_2.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(reload_image), 50);
+    set_widget_css(GTK_WIDGET(reload_image), "reload_img",
+    "image#reload_img {"
+        "   transition: transform 0.3s;"
+    "}"
+    "image#reload_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(reload_btn), reload_image);
+
+    GObject *add_btn = gtk_builder_get_object(builder, "user_rendezvous_add_btn");
+    gtk_widget_set_size_request(GTK_WIDGET(add_btn), 80, 80);
+    set_widget_css(GTK_WIDGET(add_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border: none;"
+        "   border-radius: 100px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   transition: background 0.3s;"
+    "}");
+
+    GtkWidget *add_image = gtk_image_new_from_file("imgs/add_2.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(add_image), 50);
+    set_widget_css(GTK_WIDGET(add_image), "add_img",
+    "image#add_img {"
+        "   transition: transform 0.3s;"
+    "}"
+    "image#add_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(add_btn), add_image);
+
+    GObject *return_btn = gtk_builder_get_object(builder, "user_rendezvous_return_btn");
+    gtk_widget_set_halign(GTK_WIDGET(return_btn), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(return_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border-left: 5px solid #c6c5ea;"
+        "   border-right: none;"
+        "   border-top: none;"
+        "   border-bottom: none;"
+        "   border-radius: 0px;"
+        "   padding: 0px 0px 0px 20px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+    "}");
+
+    GtkWidget *return_image = gtk_image_new_from_file("imgs/back_arrow_2.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(return_image), 50);
+    set_widget_css(GTK_WIDGET(return_image), "back_arrow",
+    "image#back_arrow {"
+        "   transition: transform 0.3s;"
+    "}"
+    "image#back_arrow:hover {"
+        "   transform: translateX(-10px);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(return_btn), return_image);
+
+    // Fetch User ID from window data
     char *cin = g_object_get_data(G_OBJECT(wins[USER_MENU]), "UserID");
 
-    // Create and attach buttons after the last row of patient data
-    GObject *user_reload_rendezvous_btn = gtk_builder_get_object(builder, "user_reload_rendezvous_btn");
-    GObject *user_add_rendezvous_btn = gtk_builder_get_object(builder, "user_add_rendezvous_btn");
-    GObject *user_return_rendezvous_btn = gtk_builder_get_object(builder, "user_return_rendezvous_btn");
-
+    // Update display with user rendezvous data
     g_update_user_rdv_display(NULL, grid);
 
-    // Connect button signals to their respective callbacks
-    g_signal_connect(user_reload_rendezvous_btn, "clicked", G_CALLBACK(g_update_user_rdv_display), grid);
-    g_signal_connect(user_add_rendezvous_btn,"clicked", G_CALLBACK(request_rdv_popup), cin);
-    g_signal_connect(user_return_rendezvous_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_MENU));
+    // Connect signals to callbacks
+    g_signal_connect(reload_btn, "clicked", G_CALLBACK(g_update_user_rdv_display), grid);
+    g_signal_connect(add_btn, "clicked", G_CALLBACK(request_rdv_popup), cin);
+    g_signal_connect(return_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_MENU));
 
+    // Attach grid to scrolled window and window
+    gtk_scrolled_window_set_child(scrolled_window, GTK_WIDGET(grid));
+    gtk_window_set_child(user_rendezvous_window, GTK_WIDGET(scrolled_window));
 }
 
 // set user consultation windows objects
 void set_user_consult_win() {
+    GtkBuilder *builder = get_builder_instance();
+    GObject **wins = get_windows_instance();
 
-    GtkBuilder* builder = get_builder_instance();
+    GtkWindow *user_consult_window = GTK_WINDOW(gtk_builder_get_object(builder, "user_consult_window"));
+    if (!user_consult_window) {
+        g_printerr("Failed to get 'user_consult_window' from builder UI file\n");
+        return;
+    }
+    gtk_window_maximize(user_consult_window);
 
-    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "user_grid_consult"));
+    GtkScrolledWindow *scrolled_window = GTK_SCROLLED_WINDOW(gtk_builder_get_object(builder, "user_consult_scrolled_window"));
 
-    // Create and attach buttons after the last row of patient data
-    GObject *user_reload_rendezvous_btn = gtk_builder_get_object(builder, "user_reload_consult_btn");
-    GObject *user_return_rendezvous_btn = gtk_builder_get_object(builder, "user_return_consult_btn");
+    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "user_consult_grid"));
+    gtk_widget_set_halign(GTK_WIDGET(grid), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(grid), GTK_ALIGN_START);
 
+    // Apply CSS styling to the grid
+    set_widget_css(GTK_WIDGET(grid), "user_consult_grid",
+    "grid#user_consult_grid {"
+        "   min-width: 800px;"
+        "   margin-top: 50px;"
+        "   margin-bottom: 50px;"
+    "}");
+
+    GtkWidget *empty_label = gtk_label_new("");
+    set_widget_css(GTK_WIDGET(empty_label), "empty_label",
+    "label#empty_label {"
+        "   margin-top: 50px;"
+    "}");
+
+    gtk_grid_attach(grid, empty_label, 0, 1, 1, 1);
+
+    // Create and style buttons
+    GObject *reload_btn = gtk_builder_get_object(builder, "user_consult_reload_btn");
+    gtk_widget_set_size_request(GTK_WIDGET(reload_btn), 80, 80);
+    set_widget_css(GTK_WIDGET(reload_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border: none;"
+        "   border-radius: 100px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   transition: background 0.3s;"
+    "}");
+
+    GtkWidget *reload_image = gtk_image_new_from_file("imgs/reload_3.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(reload_image), 50);
+    set_widget_css(GTK_WIDGET(reload_image), "reload_img",
+    "image#reload_img {"
+        "   transition: transform 0.3s;"
+    "} image#reload_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(reload_btn), reload_image);
+
+    GObject *return_btn = gtk_builder_get_object(builder, "user_consult_return_btn");
+    gtk_widget_set_halign(GTK_WIDGET(return_btn), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(return_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border-left: 5px solid #b5e5dc;"
+        "   border-right: none;"
+        "   border-top: none;"
+        "   border-bottom: none;"
+        "   border-radius: 0px;"
+        "   padding: 0px 0px 0px 20px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+    "}");
+
+    GtkWidget *return_image = gtk_image_new_from_file("imgs/back_arrow_3.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(return_image), 50);
+    set_widget_css(GTK_WIDGET(return_image), "back_arrow",
+    "image#back_arrow {"
+        "   transition: transform 0.3s;"
+    "} image#back_arrow:hover {"
+        "   transform: translateX(-10px);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(return_btn), return_image);
+
+    // Fetch User ID from window data
+    char *cin = g_object_get_data(G_OBJECT(wins[USER_MENU]), "UserID");
+    printf("cin : %s", cin);
+
+    // Update display with user consult data
     g_update_user_consult_display(NULL, grid);
 
-    // Connect button signals to their respective callbacks
-    g_signal_connect(user_reload_rendezvous_btn, "clicked", G_CALLBACK(g_update_user_consult_display), grid);
-    g_signal_connect(user_return_rendezvous_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_MENU));
+    // Connect signals to callbacks
+    g_signal_connect(reload_btn, "clicked", G_CALLBACK(g_update_user_consult_display), grid);
+    g_signal_connect(return_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_MENU));
+
+    // Attach grid to scrolled window and window
+    gtk_scrolled_window_set_child(scrolled_window, GTK_WIDGET(grid));
+    gtk_window_set_child(user_consult_window, GTK_WIDGET(scrolled_window));
 }
 
 // set user facture windows objects
@@ -4205,17 +4476,95 @@ void set_user_facture_win() {
 
     GtkBuilder* builder = get_builder_instance();
 
-    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "user_grid_invoice"));
+    GtkWindow *user_invoice_window = GTK_WINDOW(gtk_builder_get_object(builder, "user_invoice_window"));
+    if (!user_invoice_window) {
+        g_printerr("Failed to get 'user invoice window' from builder UI file\n");
+        return;
+    }
+    gtk_window_maximize(user_invoice_window);
 
-    // Create and attach buttons after the last row of patient data
-    GObject *user_reload_invoice_btn = gtk_builder_get_object(builder, "user_reload_invoice_btn");
-    GObject *user_return_invoice_btn = gtk_builder_get_object(builder, "user_return_invoice_btn");
+    GtkScrolledWindow *scrolled_window = GTK_SCROLLED_WINDOW(gtk_builder_get_object(builder, "user_invoice_scrolled_window"));
+
+    GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "user_invoice_grid"));
+    gtk_widget_set_halign(GTK_WIDGET(grid), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(grid), GTK_ALIGN_START);
+
+    set_widget_css(GTK_WIDGET(grid), "user_rendezvous_grid",
+    "grid#user_rendezvous_grid {"
+        "   min-width: 800px;"
+        "   min-height: 600px;"
+        "   margin-top: 50px;"
+        "   margin-bottom: 50px;"
+    "}");
+
+    GtkWidget *empty_label = gtk_label_new("");
+    set_widget_css(GTK_WIDGET(empty_label), "empty_label",
+    "label#empty_label {"
+        "   margin-top: 50px;"
+    "}");
+
+    gtk_grid_attach(grid, empty_label, 0, 1, 1, 1);
+
+    // Create and style buttons
+    GObject *reload_btn = gtk_builder_get_object(builder, "user_invoice_reload_btn");
+    gtk_widget_set_size_request(GTK_WIDGET(reload_btn), 80, 80);
+    set_widget_css(GTK_WIDGET(reload_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border: none;"
+        "   border-radius: 100px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+        "   transition: background 0.3s;"
+    "}");
+
+    GtkWidget *reload_image = gtk_image_new_from_file("imgs/reload_4.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(reload_image), 50);
+    set_widget_css(GTK_WIDGET(reload_image), "reload_img",
+    "image#reload_img {"
+        "   transition: transform 0.3s;"
+    "}"
+    "image#reload_img:hover {"
+        "   transform: scale(1.1);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(reload_btn), reload_image);
+    GObject *return_btn = gtk_builder_get_object(builder, "user_invoice_return_btn");
+    gtk_widget_set_halign(GTK_WIDGET(return_btn), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(return_btn), "btn",
+    "button#btn {"
+        "   font-size: 18px;"
+        "   border-left: 5px solid #e8d1c1;"
+        "   border-right: none;"
+        "   border-top: none;"
+        "   border-bottom: none;"
+        "   border-radius: 0px;"
+        "   padding: 0px 0px 0px 20px;"
+        "   background: transparent;"
+        "   box-shadow: none;"
+    "}");
+
+    GtkWidget *return_image = gtk_image_new_from_file("imgs/back_arrow_4.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(return_image), 50);
+    set_widget_css(GTK_WIDGET(return_image), "back_arrow",
+    "image#back_arrow {"
+        "   transition: transform 0.3s;"
+    "}"
+    "image#back_arrow:hover {"
+        "   transform: translateX(-10px);"
+        "   transition: transform 0.3s;"
+    "}");
+    gtk_button_set_child(GTK_BUTTON(return_btn), return_image);
 
     g_update_user_bill_display(NULL, grid);
 
     // Connect button signals to their respective callbacks
-    g_signal_connect(user_reload_invoice_btn, "clicked", G_CALLBACK(g_update_user_bill_display), grid);
-    g_signal_connect(user_return_invoice_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_MENU));
+    g_signal_connect(reload_btn, "clicked", G_CALLBACK(g_update_user_bill_display), grid);
+    g_signal_connect(return_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_MENU));
+
+    // Attach grid to scrolled window and window
+    gtk_scrolled_window_set_child(scrolled_window, GTK_WIDGET(grid));
+    gtk_window_set_child(user_invoice_window, GTK_WIDGET(scrolled_window));
 }
 
 // set user menu windows objects
@@ -4223,32 +4572,270 @@ void set_user_menu_objs() {
 
     GtkBuilder* builder = get_builder_instance();
 
-    if (!builder) {
-        g_printerr("GtkBuilder instance is NULL. Check initialization.");
+    GObject *user_menu_window = gtk_builder_get_object(builder, "user_menu_window");
+    if (!user_menu_window) {
+        g_printerr("Failed to get 'user_menu_window' from builder UI file\n");
+    }
+    gtk_window_maximize(GTK_WINDOW(user_menu_window));
+    set_widget_css(GTK_WIDGET(user_menu_window), "menu_window", "window#menu_window { background: #F2FAFD;}");
+    //-------------------------------------
+
+    GObject *menu_grid = gtk_builder_get_object(builder, "user_menu_grid");
+    set_widget_css(GTK_WIDGET(menu_grid), "menu_grid",
+    "grid#menu_grid {"
+        "   min-width: 800px;"
+        "}");
+    gtk_widget_set_valign(GTK_WIDGET(menu_grid), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(menu_grid), GTK_ALIGN_CENTER);
+    //-------------------------------------
+    //----------Patient section
+    //-------------------------------------
+
+    GObject *patient_btn = gtk_builder_get_object(builder, "user_info_btn");
+
+    gtk_widget_set_vexpand_set(GTK_WIDGET(patient_btn), TRUE);
+    if (patient_btn == NULL) {
+        g_printerr("Failed to get 'btn_patient' from builder UI\n");
         return;
     }
+    set_widget_css(GTK_WIDGET(patient_btn), "patient_btn",
+    "button#patient_btn {"
+        "   min-width: 400px;"
+        "   min-height: 200px;"
+        "   padding: 0px;"
+        "   border: 0px;"
+        "   border-radius: 10px;"
+        "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%);"
+        "   transition: transform 0.3s, background 0.3s;}"
+    "#patient_btn:hover {"
+        "   background: linear-gradient(45deg, rgba(249,212,228,0.9) 0%, rgba(255,255,255,1) 50%);"
+        "   transform: scale(1.05);"
+        "   transition: transform 0.3s, background 0.3s;}");
+    //-------------------------------------
 
-    GObject *btn_patient = gtk_builder_get_object(builder, "user_btn_patient");
+     GtkWidget *patient_overlay = gtk_overlay_new();
+     set_widget_css(GTK_WIDGET(patient_overlay), "patient_overlay","widget#patient_overlay {background: #000;}");
+     //-------------------------------------
 
-    GObject *btn_rdv = gtk_builder_get_object(builder, "user_btn_rdv");
+     GtkWidget *patient_image = gtk_image_new_from_file("imgs/patient_icon.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(patient_image), 50);
+     gtk_widget_set_halign(GTK_WIDGET(patient_image), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(patient_image), GTK_ALIGN_START);
+     set_widget_css(GTK_WIDGET(patient_image), "patient_image","image#patient_image {margin-top: 10px; margin-right: 5px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(patient_overlay), patient_image);
+     //-------------------------------------
 
-    GObject *btn_consult = gtk_builder_get_object(builder, "user_btn_consult");
+     GtkWidget *patient_label = gtk_label_new("My information");
+     gtk_widget_set_halign(GTK_WIDGET(patient_label), GTK_ALIGN_CENTER);
+     gtk_widget_set_valign(GTK_WIDGET(patient_label), GTK_ALIGN_CENTER);
+     set_widget_css(GTK_WIDGET(patient_label), "patient_label","label#patient_label {font-size: 24px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(patient_overlay), patient_label);
 
-    GObject *btn_payment = gtk_builder_get_object(builder, "user_btn_payment");
+     //-------------------------------------
+     GtkWidget *part_of_design_1 = gtk_image_new_from_file("imgs/part_of_design_1.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(part_of_design_1), 50);
+     gtk_widget_set_halign(GTK_WIDGET(part_of_design_1), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(part_of_design_1), GTK_ALIGN_END);
+     gtk_overlay_add_overlay(GTK_OVERLAY(patient_overlay), part_of_design_1);
 
-    GObject *btn_out = gtk_builder_get_object(builder, "user_btn_out");
+     //-------------------------------------
+     gtk_button_set_child(GTK_BUTTON(patient_btn), patient_overlay);
+
+    // -------------------------------------
+    // ----------Rendezvous section
+    // -------------------------------------
+
+     GObject *rdv_btn = gtk_builder_get_object(builder, "user_rdv_btn");
+
+     gtk_widget_set_vexpand_set(GTK_WIDGET(rdv_btn), TRUE);
+     if (rdv_btn == NULL) {
+         g_printerr("Failed to get 'btn_rdv' from builder UI\n");
+     }
+     set_widget_css(GTK_WIDGET(rdv_btn), "rdv_btn",
+         "button#rdv_btn {"
+         "   min-width: 400px;"
+         "   min-height: 200px;"
+         "   padding: 0px;"
+         "   border: 0px;"
+         "   border-radius: 10px;"
+         "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%);"
+         "   transition: transform 0.3s, background 0.3s;}"
+         "#rdv_btn:hover {"
+         "   background: linear-gradient(45deg, rgba(216,213,247,0.9) 0%, rgba(255,255,255,1) 50%);"
+         "   transform: scale(1.05);"
+         "   transition: transform 0.3s, background 0.3s;}");
+     //-------------------------------------
+
+     GtkWidget *rdv_overlay = gtk_overlay_new();
+     set_widget_css(GTK_WIDGET(rdv_overlay), "rdv_overlay","widget#rdv_overlay {background: #000;}");
+     //-------------------------------------
+
+     GtkWidget *rdv_image = gtk_image_new_from_file("imgs/rendezvous_icon.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(rdv_image), 50);
+     gtk_widget_set_halign(GTK_WIDGET(rdv_image), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(rdv_image), GTK_ALIGN_START);
+     set_widget_css(GTK_WIDGET(rdv_image), "rdv_image",
+         "image#rdv_image {"
+         "   margin-top: 10px;"
+         "   margin-right: 5px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(rdv_overlay), rdv_image);
+     //-------------------------------------
+
+     GtkWidget *rdv_label = gtk_label_new("My Rendezvous");
+     gtk_widget_set_halign(GTK_WIDGET(rdv_label), GTK_ALIGN_CENTER);
+     gtk_widget_set_valign(GTK_WIDGET(rdv_label), GTK_ALIGN_CENTER);
+     set_widget_css(GTK_WIDGET(rdv_label), "rdv_label","label#rdv_label {font-size: 24px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(rdv_overlay), rdv_label);
+
+     //-------------------------------------
+     GtkWidget *part_of_design_2 = gtk_image_new_from_file("imgs/part_of_design_2.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(part_of_design_2), 50);
+     gtk_widget_set_halign(GTK_WIDGET(part_of_design_2), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(part_of_design_2), GTK_ALIGN_END);
+     gtk_overlay_add_overlay(GTK_OVERLAY(rdv_overlay), part_of_design_2);
+
+     //-------------------------------------
+     gtk_button_set_child(GTK_BUTTON(rdv_btn), rdv_overlay);
+
+     //-------------------------------------
+     //----------consultation section
+     //-------------------------------------
+
+     GObject *consult_btn = gtk_builder_get_object(builder, "user_consult_btn");
+
+     gtk_widget_set_vexpand_set(GTK_WIDGET(consult_btn), TRUE);
+     if (consult_btn == NULL) {
+         g_printerr("Failed to get 'consult_btn' from builder UI\n");
+     }
+     set_widget_css(GTK_WIDGET(consult_btn), "consult_btn",
+         "button#consult_btn {"
+         "   min-width: 400px;"
+         "   min-height: 200px;"
+         "   padding: 0px;"
+         "   border: 0px;"
+         "   border-radius: 10px;"
+         "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%);"
+         "   transition: transform 0.3s, background 0.3s;}"
+         "#consult_btn:hover {"
+         "   background: linear-gradient(45deg, rgba(212,244,238,0.9) 0%, rgba(255,255,255,1) 50%);"
+         "   transform: scale(1.05);"
+         "   transition: transform 0.3s, background 0.3s;}");
+     //-------------------------------------
+
+     GtkWidget *consult_overlay = gtk_overlay_new();
+     set_widget_css(GTK_WIDGET(consult_overlay), "consult_overlay","widget#consult_overlay {background: #000;}");
+     //-------------------------------------
+
+     GtkWidget *consult_image = gtk_image_new_from_file("imgs/consultation_icon.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(consult_image), 50);
+     gtk_widget_set_halign(GTK_WIDGET(consult_image), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(consult_image), GTK_ALIGN_START);
+     set_widget_css(GTK_WIDGET(consult_image), "consult_image",
+         "image#consult_image {"
+         "   margin-top: 10px;"
+         "   margin-right: 5px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(consult_overlay), consult_image);
+     //-------------------------------------
+
+     GtkWidget *consult_label = gtk_label_new("My Consultations");
+     gtk_widget_set_halign(GTK_WIDGET(consult_label), GTK_ALIGN_CENTER);
+     gtk_widget_set_valign(GTK_WIDGET(consult_label), GTK_ALIGN_CENTER);
+     set_widget_css(GTK_WIDGET(consult_label), "consult_label","label#consult_label {font-size: 24px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(consult_overlay), consult_label);
+
+     //-------------------------------------
+     GtkWidget *part_of_design_3 = gtk_image_new_from_file("imgs/part_of_design_3.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(part_of_design_3), 50);
+     gtk_widget_set_halign(GTK_WIDGET(part_of_design_3), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(part_of_design_3), GTK_ALIGN_END);
+     gtk_overlay_add_overlay(GTK_OVERLAY(consult_overlay), part_of_design_3);
+
+     //-------------------------------------
+     gtk_button_set_child(GTK_BUTTON(consult_btn), consult_overlay);
+
+     //-------------------------------------
+     //----------Invoice section
+     //-------------------------------------
+
+     GObject *invoice_btn = gtk_builder_get_object(builder, "user_payment_btn");
+
+     gtk_widget_set_vexpand_set(GTK_WIDGET(invoice_btn), TRUE);
+     if (invoice_btn == NULL) {
+         g_printerr("Failed to get 'invoice_btn' from builder UI\n");
+     }
+     set_widget_css(GTK_WIDGET(invoice_btn), "invoice_btn",
+         "button#invoice_btn {"
+         "   min-width: 400px;"
+         "   min-height: 200px;"
+         "   padding: 0px;"
+         "   border: 0px;"
+         "   border-radius: 10px;"
+         "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%);"
+         "   transition: transform 0.3s, background 0.3s;}"
+         "#invoice_btn:hover {"
+         "   background: linear-gradient(45deg, rgba(242,227,214,0.9) 0%, rgba(255,255,255,1) 50%);"
+         "   transform: scale(1.05);"
+         "   transition: transform 0.3s, background 0.3s;}");
+     //-------------------------------------
+
+     GtkWidget *invoice_overlay = gtk_overlay_new();
+     //-------------------------------------
+
+     GtkWidget *invoice_image = gtk_image_new_from_file("imgs/invoice_icon.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(invoice_image), 50);
+     gtk_widget_set_halign(GTK_WIDGET(invoice_image), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(invoice_image), GTK_ALIGN_START);
+     set_widget_css(GTK_WIDGET(invoice_image), "invoice_image",
+         "image#invoice_image {"
+         "   margin-top: 10px;"
+         "   margin-right: 5px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(invoice_overlay), invoice_image);
+     //-------------------------------------
+
+     GtkWidget *invoice_label = gtk_label_new("Invoices");
+     gtk_widget_set_halign(GTK_WIDGET(invoice_label), GTK_ALIGN_CENTER);
+     gtk_widget_set_valign(GTK_WIDGET(invoice_label), GTK_ALIGN_CENTER);
+     set_widget_css(GTK_WIDGET(invoice_label), "invoice_label",
+         "label#invoice_label {font-size: 24px;}");
+     gtk_overlay_add_overlay(GTK_OVERLAY(invoice_overlay), invoice_label);
+
+     //-------------------------------------
+
+     GtkWidget *part_of_design_4 = gtk_image_new_from_file("imgs/part_of_design_4.svg");
+     gtk_image_set_pixel_size(GTK_IMAGE(part_of_design_4), 50);
+     gtk_widget_set_halign(GTK_WIDGET(part_of_design_4), GTK_ALIGN_END);
+     gtk_widget_set_valign(GTK_WIDGET(part_of_design_4), GTK_ALIGN_END);
+     gtk_overlay_add_overlay(GTK_OVERLAY(invoice_overlay), part_of_design_4);
+
+     //-------------------------------------
+     gtk_button_set_child(GTK_BUTTON(invoice_btn), invoice_overlay);
+
+    GObject *logout_btn = gtk_builder_get_object(builder, "user_out_btn");
+
+    set_widget_css(GTK_WIDGET(logout_btn), "logout_btn",
+        "button#logout_btn {"
+        "   min-width: 100px;"
+        "   min-height: 50px;"
+        "   font-size: 14px;"
+        "   padding: 0px;"
+        "   border: 0px;"
+        "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 100%);"
+        "   transition: background 0.3s;}"
+        "#logout_btn:hover {"
+        "   background: linear-gradient(45deg, rgba(255,160,160,0.9) 0%, rgba(255,255,255,1) 100%);"
+        "   transition: background 0.3s;}");
 
     set_user_info_objs();
     set_user_rendezvous_win();
     set_user_consult_win();
     set_user_facture_win();
 
-    g_signal_connect(btn_patient, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_INFO));
-    g_signal_connect(btn_rdv, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_RENDEZVOUS_INFO));
-    g_signal_connect(btn_consult, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_CONSULT_INFO));
-    g_signal_connect(btn_payment, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_INVOICE_INFO));
-    g_signal_connect(btn_out, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(LOGIN));
-
+    g_signal_connect(patient_btn, "clicked", G_CALLBACK(switch_to_popup_window), GINT_TO_POINTER(USER_INFO));
+    g_signal_connect(rdv_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_RENDEZVOUS_INFO));
+    g_signal_connect(consult_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_CONSULT_INFO));
+    g_signal_connect(invoice_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_INVOICE_INFO));
+    g_signal_connect(logout_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(LOGIN));
+    g_signal_connect(logout_btn, "clicked", G_CALLBACK(clear_window_id), GINT_TO_POINTER(USER_MENU));
 }
 
 void g_login(GtkButton *btn, gpointer data) {

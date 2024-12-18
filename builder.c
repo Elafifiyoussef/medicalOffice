@@ -84,7 +84,7 @@ GObject** get_windows_instance() {
             return NULL;
         }
 
-        windows_instance[8] = gtk_builder_get_object(builder, "userMenuWindow");
+        windows_instance[8] = gtk_builder_get_object(builder, "user_menu_window");
         if (!windows_instance[8]) {
             g_printerr("Failed to get 'User_main' window from builder UI file\n");
             g_free(windows_instance);
@@ -98,21 +98,21 @@ GObject** get_windows_instance() {
             return NULL;
         }
 
-        windows_instance[10] = gtk_builder_get_object(builder, "userRdvWindow");
+        windows_instance[10] = gtk_builder_get_object(builder, "user_rendezvous_window");
         if (!windows_instance[10]) {
             g_printerr("Failed to get 'User Rendezvous' window from builder UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[11] = gtk_builder_get_object(builder, "userConsultWindow");
+        windows_instance[11] = gtk_builder_get_object(builder, "user_consult_window");
         if (!windows_instance[11]) {
             g_printerr("Failed to get 'User Consultation' window from builder UI file\n");
             g_free(windows_instance);
             return NULL;
         }
 
-        windows_instance[12] = gtk_builder_get_object(builder, "userInvoiceWindow");
+        windows_instance[12] = gtk_builder_get_object(builder, "user_invoice_window");
         if (!windows_instance[12]) {
             g_printerr("Failed to get 'User Consultation' window from builder UI file\n");
             g_free(windows_instance);
@@ -130,6 +130,17 @@ void switch_to_window(GtkButton *btn, gpointer user_data) {
 
     if (GTK_IS_WINDOW(window_prev)) {
         gtk_widget_set_visible(window_prev, FALSE);
+        gtk_widget_set_visible(window_next, TRUE);
+    }
+}
+
+void switch_to_popup_window(GtkButton *btn, gpointer user_data) {
+    GObject **windows = get_windows_instance();
+    WINS index = GPOINTER_TO_INT(user_data);
+    GtkWidget *window_next = GTK_WIDGET(windows[index]);
+    GtkWidget *window_prev = gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW);
+
+    if (GTK_IS_WINDOW(window_prev)) {
         gtk_widget_set_visible(window_next, TRUE);
     }
 }
@@ -184,6 +195,11 @@ void display_string_months(GListModel *model) {
     // for (guint i = 0; i < n_items; i++) {
     gpointer *item = g_list_model_get_item(model, 1); // Retrieve the item at index i
     const char* month = gtk_string_object_get_string(GTK_STRING_OBJECT(item));
-    g_print("Month %d: %s\n", 1, month);
     // }
+}
+
+void clear_window_id(GtkWidget *widget, gpointer user_data) {
+    GObject **windows = get_windows_instance();
+    int window_id = GPOINTER_TO_INT(user_data);
+    g_object_set_data(windows[window_id], "UserID", NULL);
 }

@@ -6,6 +6,8 @@
 #include <tgmath.h>
 #include <time.h>
 
+#include "Rendezvous.h"
+
 int isTextValid(const char* text) {
     if (!strlen(text)) {
         return 0;
@@ -83,11 +85,40 @@ int isDateValid(int Year, int Month, int Day) {
     return 1; // Date is valid
 }
 
-int isYearValid(int year) {
+int isDateTimeValid(int Year, int Month, int Day, int hour) {
+    // Get the current date and time
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    return tm.tm_year <= year;
+
+    int currentYear = tm.tm_year + 1900;
+    int currentMonth = tm.tm_mon + 1; // Months are 0-indexed in tm
+    int currentDay = tm.tm_mday;
+
+    // Validate the date
+    if (Year < currentYear) {
+        return 0; // Year is invalid
+    }
+
+    if (Year == currentYear && Month < currentMonth) {
+        return 0; // Month is invalid
+    }
+
+    if (Year == currentYear && Month == currentMonth && Day < currentDay) {
+        return 0; // Day is invalid
+    }
+
+    // Validate the hour
+    if (hour < 8 || hour >= 18) {
+        return 0; // Hour is outside the valid range
+    }
+
+    if (Year == currentYear && Month == currentMonth && Day == currentDay && tm.tm_hour > hour) {
+        return 0; // Hour is in the past on the current day
+    }
+
+    return 1; // Date and hour are valid
 }
+
 
 int isMonthValid(int month) {
     time_t t = time(NULL);
@@ -101,8 +132,38 @@ int isDayValid(int day) {
     return tm.tm_mday <= day;
 }
 
-int isHourValid(int hour) {
-    return hour >= 8 && hour < 18;
+int isHourFullyReserved(int year, int month, int day, int hour) {
+    Rendezvous *rendezvous = getRVs();
+    int count = getNumbOfRVs();
+    int reserved_hour_number = 0;
+    for (int i = 0; i < count; i++) {
+        if (rendezvous[i].hour == hour
+            && rendezvous[i].day == day
+            && rendezvous[i].month == month
+            && rendezvous[i].year == year) {
+            reserved_hour_number++;
+        }
+        if (reserved_hour_number == 4) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int isSameUserReserved(const char* cin, int year, int month, int day, int hour) {
+    Rendezvous *rendezvous = getRVs();
+    int count = getNumbOfRVs();
+    int reserved_hour_number = 0;
+    for (int i = 0; i < count; i++) {
+        if (rendezvous[i].hour == hour
+            && rendezvous[i].day == day
+            && rendezvous[i].month == month
+            && rendezvous[i].year == year
+            && strcmp(rendezvous[i].id_pt, cin) == 0) {
+                return 1;
+            }
+    }
+    return 0;
 }
 
 int find_year_index(const char* target) {
@@ -151,4 +212,14 @@ int isAmountValid(double amount) {
         return 0;
     }
     return 1; // Valid amount
+}
+
+int find_payment_state_index(const char* target) {
+    const char states[2][10] = {"Payed", "Not payed"};
+    for (int i = 0; i < 2 ; i++) {
+        if (strcmp(target, states[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }

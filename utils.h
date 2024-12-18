@@ -10,11 +10,14 @@ int isDateValid(int Year, int Month, int Day);
 int isYearValid(int year);
 int isMonthValid(int month);
 int isDayValid(int day);
-int isHourValid(int hour);
+int isDateTimeValid(int Year, int Month, int Day, int hour);
+int isHourFullyReserved(int year, int month, int day, int hour);
+int isSameUserReserved(const char* cin, int year, int month, int day, int hour);
 int find_year_index(const char* target);
 int find_month_index(const char* target);
 int find_day_index(const char* target);
 int find_hour_index(const char* target);
+int find_payment_state_index(const char* target);
 int isAmountValid(double amount);
 
 #endif //UTILS_H
