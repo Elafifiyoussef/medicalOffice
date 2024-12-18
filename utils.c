@@ -16,13 +16,15 @@ int isTextValid(const char* text) {
 }
 
 int isCinValid(const char* cin) {
-    if (cin == NULL || strlen(cin) == 0 || strlen(cin) > 9) {
-        return 0;
+    if(cin[0] < 'A' || cin[0]> 'Z')
+        return 0 ;
+    for(int i=2;cin[i] != '\0' && cin[i] != '\n' ;i++){
+        if(cin[i]<'0' || cin[i]>'9')
+            return 0 ;
     }
-    for (int i = 0; cin[i] != '\0'; i++) {
-        if ((cin[i] > 'z' || cin[i] < 'a') && (cin[i] > 'Z' || cin[i] < 'A') && (cin[i] > '9' || cin[i] < '0')) {
-            return 0;
-        }
+    for(int i=0;cin[i] != '\0' && cin[i] != '\n' ;i++){
+        if( cin[i] < '0' || (cin[i]>'9' && cin[i]<'A') || cin[i]> 'Z')
+            return 0 ;
     }
     return 1;
 }
@@ -49,15 +51,21 @@ int isAgeValid( int age) {
 }
 
 int isPhoneValid(const char* phone) {
-    if (strlen(phone) != 10) {
-        return 0;
-    }
-    for (int i = 0; phone[i] != '\0'; i++) {
-        if (phone[i] < '0' || phone[i] > '9') {
-            return 0;
+        int i ;
+        if(phone[0] != '0') {
+            return 0 ;
         }
-    }
-    return 1;
+        if(phone[1]!='6' && phone[1]!='7'){
+            return 0 ;
+        }
+        for( i = 0; phone[i]!='\n' && phone[i]!='\0'; i++){
+            if (phone[i]< '0' || phone[i] > '9')
+                return 0;
+        }
+        if(i!=9) {
+            return 0 ;
+        }
+        return 1;
 }
 
 int isDateValid(int Year, int Month, int Day) {
@@ -118,7 +126,6 @@ int isDateTimeValid(int Year, int Month, int Day, int hour) {
 
     return 1; // Date and hour are valid
 }
-
 
 int isMonthValid(int month) {
     time_t t = time(NULL);

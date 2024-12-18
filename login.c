@@ -118,3 +118,34 @@ void displayAllAccounts() {
     fclose(file);
 
 }
+
+void deleteAccount(char *cin) {
+    FILE *file = fopen("login.bin","rb");
+    if (file == NULL) {
+        printf("File could not be opened\n");
+        return;
+    }
+
+    Login account;
+    int found = 0;
+
+    FILE *temp = fopen("temp.bin","wb");
+    while (fread(&account, sizeof(Login), 1, file)) {
+        if (strcmp(cin, account.cin) != 0) {
+            fwrite(&account, sizeof(Login), 1, temp);
+        } else {
+            found = 1;
+        }
+    }
+
+    if (found) {
+        printf("Account with ID %s deleted\n", cin);
+    } else {
+        printf("Accoubt with ID %s not found\n", cin);
+    }
+    fclose(temp);
+    fclose(file);
+
+    remove("login.bin");
+    rename("temp.bin","login.bin");
+}

@@ -26,5 +26,6 @@ int ifAccountExists(char *cin);
 void displayAccount(Login account);
 void displayAllAccounts();
 Role checkRole(Login *user);
+void deleteAccount(char *cin);
 
 #endif //LOGIN_H

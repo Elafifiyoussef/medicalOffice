@@ -214,6 +214,7 @@ void g_delete_patient(GtkButton *btn, gpointer data) {
     for (int i = 0; i < count; i++) {
         cancelRV(rendezvous[i].id);
     }
+    deleteAccount(cin_id);
 }
 
 void delete_patient_popup(GtkButton *btn, gpointer data) {
@@ -1375,7 +1376,6 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
         int weekend = is_weekend(*rendezvous);
         int holiday = is_holiday(*rendezvous);
         int full_hour_reserved = isHourFullyReserved(year, month, day, hour);
-        int same_user_reserved = isSameUserReserved(rendezvous->id_pt , year,  month,  day, hour);
 
         if (holiday) {
             gtk_label_set_text(GTK_LABEL(label_date), "Invalid Rendezvous: it's a holiday");
@@ -1386,15 +1386,12 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
                 if (full_hour_reserved) {
                     gtk_label_set_text(GTK_LABEL(label_date), "The selected hour is fully booked. Please choose a different time slot.");
                 } else {
-                    if (same_user_reserved) {
-                        gtk_label_set_text(GTK_LABEL(label_date), "You already reserved this hour. Please choose a different time.");
-                    } else {
                         gtk_label_set_text(GTK_LABEL(label_date), "");
-                    }
+
                 }
             }
         }
-        if (!weekend && !holiday && !full_hour_reserved && !same_user_reserved) {
+        if (!weekend && !holiday && !full_hour_reserved) {
             modifyRV(*rendezvous);
             free(rendezvous);
             window_close(NULL, GTK_WINDOW(gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW)));
@@ -2987,7 +2984,7 @@ void g_register(GtkButton *btn, gpointer data) {
     int phone_valid = isPhoneValid(phone);
     int email_valid = checkEmail(email);
     int password_valid = checkPassword(password);
-    int confirm_password_valid = checkPassword(confirm_password);
+    int confirm_password_valid = strcmp(confirm_password, password) == 0;
 
     if (!cin_valid) {
         gtk_label_set_text(GTK_LABEL(register_cin_label), "Invalid cin");
@@ -3040,13 +3037,13 @@ void g_register(GtkButton *btn, gpointer data) {
     } else {
         gtk_label_set_text(GTK_LABEL(register_password_label), "");
     }
-    if (!confirm_password_valid && strcmp(confirm_password, password) != 0) {
+    if (!confirm_password_valid) {
         gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "Invalid confirm password");
     } else {
         gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "");
     }
 
-    if (cin_valid && !patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid && email_valid &&  password_valid && confirm_password_valid && strcmp(confirm_password, password) == 0) {
+    if (cin_valid && !patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid && email_valid &&  password_valid && confirm_password_valid) {
         Login user;
         Patient patient;
         strcpy(patient.cin, cin);
@@ -3908,6 +3905,7 @@ void set_menu_win_objs() {
     set_widget_css(GTK_WIDGET(patient_btn), "patient_btn",
     "button#patient_btn {"
         "   min-width: 400px;"
+        "   min-height: 200px;"
         "   padding: 0px;"
         "   border: 0px;"
         "   border-radius: 10px;"
@@ -3965,6 +3963,7 @@ void set_menu_win_objs() {
     set_widget_css(GTK_WIDGET(rdv_btn), "rdv_btn",
         "button#rdv_btn {"
         "   min-width: 400px;"
+        "   min-height: 200px;"
         "   padding: 0px;"
         "   border: 0px;"
         "   border-radius: 10px;"
@@ -4025,6 +4024,7 @@ void set_menu_win_objs() {
     set_widget_css(GTK_WIDGET(consult_btn), "consult_btn",
         "button#consult_btn {"
         "   min-width: 400px;"
+        "   min-height: 200px;"
         "   padding: 0px;"
         "   border: 0px;"
         "   border-radius: 10px;"
@@ -4085,6 +4085,7 @@ void set_menu_win_objs() {
     set_widget_css(GTK_WIDGET(invoice_btn), "invoice_btn",
         "button#invoice_btn {"
         "   min-width: 400px;"
+        "   min-height: 200px;"
         "   padding: 0px;"
         "   border: 0px;"
         "   border-radius: 10px;"
@@ -4147,6 +4148,8 @@ void set_menu_win_objs() {
 
     set_widget_css(GTK_WIDGET(logout_btn), "logout_btn",
         "button#logout_btn {"
+        "   min-width: 70px;"
+        "   min-height: 50px;"
         "   font-size: 14px;"
         "   padding: 0px;"
         "   border: 0px;"
@@ -4814,7 +4817,7 @@ void set_user_menu_objs() {
 
     set_widget_css(GTK_WIDGET(logout_btn), "logout_btn",
         "button#logout_btn {"
-        "   min-width: 100px;"
+        "   min-width: 70px;"
         "   min-height: 50px;"
         "   font-size: 14px;"
         "   padding: 0px;"
@@ -4835,7 +4838,6 @@ void set_user_menu_objs() {
     g_signal_connect(consult_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_CONSULT_INFO));
     g_signal_connect(invoice_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(USER_INVOICE_INFO));
     g_signal_connect(logout_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(LOGIN));
-    g_signal_connect(logout_btn, "clicked", G_CALLBACK(clear_window_id), GINT_TO_POINTER(USER_MENU));
 }
 
 void g_login(GtkButton *btn, gpointer data) {
@@ -4913,6 +4915,7 @@ void set_login_win_objs() {
     if (!email_err_label) {
         g_printerr("Failed to get 'email_err_label' from builder UI file\n");
     }
+    gtk_label_set_text(GTK_LABEL(email_err_label), "");
     set_widget_css(GTK_WIDGET(email_err_label), "email_err", "label#email_err{color: red;}");
     gtk_widget_set_hexpand(GTK_WIDGET(email_err_label), TRUE);
 
@@ -4921,19 +4924,21 @@ void set_login_win_objs() {
         g_printerr("Failed to get 'nameEntry' from builder UI file\n");
         return;
     }
+    set_text_entry(GTK_WIDGET(email_entry), "");
 
     GObject *password_err_label = gtk_builder_get_object(builder, "login_password_err_label");
     if (!password_err_label) {
         g_printerr("Failed to get 'password_err_label' from builder UI file\n");
     }
+    gtk_label_set_text(GTK_LABEL(password_err_label), "");
     set_widget_css(GTK_WIDGET(password_err_label), "password_err", "label#password_err{color: red;}");
-
 
     GObject *password_entry = gtk_builder_get_object(builder, "login_password_entry");
     if (!password_entry) {
         g_printerr("Failed to get 'passwordEntry' from builder UI file\n");
         return;
     }
+    set_text_entry(GTK_WIDGET(password_entry), "");
 
     GObject *login_btn = gtk_builder_get_object(builder, "login_btn");
     if (!login_btn) {
@@ -4975,55 +4980,91 @@ void set_register_win_objs() {
     GObject *grid = gtk_builder_get_object(builder, "register_grid");
     gtk_widget_set_size_request(GTK_WIDGET(grid), 600, 800);
 
+    GObject *register_cin_label = gtk_builder_get_object(builder, "register_cin_label");
+    gtk_label_set_text(GTK_LABEL(register_cin_label), "");
+
     GObject *cin_entry = gtk_builder_get_object(builder, "register_cin_entry");
+    set_text_entry(GTK_WIDGET(cin_entry), "");
     if (!cin_entry) {
         g_printerr("Failed to get 'RegisterCinEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_first_name_label = gtk_builder_get_object(builder, "register_first_name_label");
+    gtk_label_set_text(GTK_LABEL(register_first_name_label), "");
+
     GObject *first_name_entry = gtk_builder_get_object(builder, "register_first_name_entry");
+    set_text_entry(GTK_WIDGET(first_name_entry), "");
     if (!first_name_entry) {
         g_printerr("Failed to get 'RegisterCinEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_last_name_label = gtk_builder_get_object(builder, "register_last_name_label");
+    gtk_label_set_text(GTK_LABEL(register_last_name_label), "");
+
     GObject *last_name_entry = gtk_builder_get_object(builder, "register_last_name_entry");
+    set_text_entry(GTK_WIDGET(last_name_entry), "");
     if (!last_name_entry) {
         g_printerr("Failed to get 'RegisterLastNameEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_age_label = gtk_builder_get_object(builder, "register_age_label");
+    gtk_label_set_text(GTK_LABEL(register_age_label), "");
+
     GObject *age_entry = gtk_builder_get_object(builder, "register_age_entry");
+    set_text_entry(GTK_WIDGET(age_entry), "");
     if (!age_entry) {
         g_printerr("Failed to get 'RegisterAgeEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_address_label = gtk_builder_get_object(builder, "register_address_label");
+    gtk_label_set_text(GTK_LABEL(register_address_label), "");
+
     GObject *address_entry = gtk_builder_get_object(builder, "register_address_entry");
+    set_text_entry(GTK_WIDGET(address_entry), "");
     if (!address_entry) {
         g_printerr("Failed to get 'RegisterAgeEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_phone_label = gtk_builder_get_object(builder, "register_phone_label");
+    gtk_label_set_text(GTK_LABEL(register_phone_label), "");
+
     GObject *phone_entry = gtk_builder_get_object(builder, "register_phone_entry");
+    set_text_entry(GTK_WIDGET(phone_entry), "");
     if (!phone_entry) {
         g_printerr("Failed to get 'RegisterAgeEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_email_label = gtk_builder_get_object(builder, "register_email_label");
+    gtk_label_set_text(GTK_LABEL(register_email_label), "");
+
     GObject *email_entry = gtk_builder_get_object(builder, "register_email_entry");
+    set_text_entry(GTK_WIDGET(email_entry), "");
     if (!email_entry) {
         g_printerr("Failed to get 'RegisterAgeEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_password_label = gtk_builder_get_object(builder, "register_password_label");
+    gtk_label_set_text(GTK_LABEL(register_password_label), "");
+
     GObject *password_entry = gtk_builder_get_object(builder, "register_password_entry");
+    set_text_entry(GTK_WIDGET(password_entry), "");
     if (!password_entry) {
         g_printerr("Failed to get 'RegisterEasswordEntry' from builder UI file\n");
         return;
     }
 
+    GObject *register_confirm_password_label = gtk_builder_get_object(builder, "register_confirm_password_label");
+    gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "");
+
     GObject *confirm_password_entry = gtk_builder_get_object(builder, "confirm_password_entry");
+    set_text_entry(GTK_WIDGET(confirm_password_entry), "");
     if (!confirm_password_entry) {
         g_printerr("Failed to get 'confirmPasswordEntry' from builder UI file\n");
         return;
@@ -5097,11 +5138,13 @@ void set_main_win_objs() {
     set_widget_css(GTK_WIDGET(login_btn), "login_btn", "button#login_btn { color: #000; background: #AEDFE2; border: #AEDFE2; font-size: 16px; padding: 10px;}"
                                                         "#login_btn:hover {background: #85BDC8;}");
 
-    set_register_win_objs();
-    set_login_win_objs();
+    // set_register_win_objs();
+    // set_login_win_objs();
 
     g_signal_connect(register_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(REGISTER));
+    g_signal_connect(register_btn, "clicked", G_CALLBACK(set_register_win_objs), NULL);
     g_signal_connect(login_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(LOGIN));
+    g_signal_connect(login_btn, "clicked", G_CALLBACK(set_login_win_objs), NULL);
 }
 
 //=====================================================================

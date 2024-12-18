@@ -129,8 +129,8 @@ void switch_to_window(GtkButton *btn, gpointer user_data) {
     GtkWidget *window_prev = gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_WINDOW);
 
     if (GTK_IS_WINDOW(window_prev)) {
-        gtk_widget_set_visible(window_prev, FALSE);
         gtk_widget_set_visible(window_next, TRUE);
+        gtk_widget_set_visible(window_prev, FALSE);
     }
 }
 
