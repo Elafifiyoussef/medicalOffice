@@ -3238,152 +3238,7 @@ void g_update_user_bill_display(GtkButton *btn, gpointer data) {
 // window creation & filling
 //===================================================================//
 
-void g_register(GtkButton *btn, gpointer data) {
 
-    GtkBuilder *builder = get_builder_instance();
-
-    GtkWidget **widgets = data;
-    if (!widgets) {
-        g_printerr("Error: objects is NULL\n");
-        return;
-    }
-
-    GtkWidget *cin_entry = widgets[0];
-    GtkWidget *first_name_entry = widgets[1];
-    GtkWidget *last_name_entry = widgets[2];
-    GtkWidget *age_entry = widgets[3];
-    GtkWidget *address_entry = widgets[4];
-    GtkWidget *phone_entry = widgets[5];
-    GtkWidget *email_entry = widgets[6];
-    GtkWidget *password_entry = widgets[7];
-    GtkWidget *confirm_password_entry = widgets[8];
-
-    const char *cin = get_text_from_entry(GTK_WIDGET(cin_entry));
-    const char *first_name = get_text_from_entry(GTK_WIDGET(first_name_entry));
-    const char *last_name = get_text_from_entry(GTK_WIDGET(last_name_entry));
-    const int age = get_int_from_entry(GTK_WIDGET(age_entry));
-    const char *address = get_text_from_entry(GTK_WIDGET(address_entry));
-    const char *phone = get_text_from_entry(GTK_WIDGET(phone_entry));
-    const char *email = get_text_from_entry(GTK_WIDGET(email_entry));
-    const char *password = get_text_from_entry(GTK_WIDGET(password_entry));
-    const char *confirm_password = get_text_from_entry(GTK_WIDGET(confirm_password_entry));
-
-    GObject *register_cin_label = gtk_builder_get_object(builder, "register_cin_label");
-    set_widget_css(GTK_WIDGET(register_cin_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_first_name_label = gtk_builder_get_object(builder, "register_first_name_label");
-    set_widget_css(GTK_WIDGET(register_first_name_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_last_name_label = gtk_builder_get_object(builder, "register_last_name_label");
-    set_widget_css(GTK_WIDGET(register_last_name_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_age_label = gtk_builder_get_object(builder, "register_age_label");
-    set_widget_css(GTK_WIDGET(register_age_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_address_label = gtk_builder_get_object(builder, "register_address_label");
-    set_widget_css(GTK_WIDGET(register_address_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_phone_label = gtk_builder_get_object(builder, "register_phone_label");
-    set_widget_css(GTK_WIDGET(register_phone_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_email_label = gtk_builder_get_object(builder, "register_email_label");
-    set_widget_css(GTK_WIDGET(register_email_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_password_label = gtk_builder_get_object(builder, "register_password_label");
-    set_widget_css(GTK_WIDGET(register_password_label), "register_label", "label#register_label{color:red;}");
-
-    GObject *register_confirm_password_label = gtk_builder_get_object(builder, "register_confirm_password_label");
-    set_widget_css(GTK_WIDGET(register_confirm_password_label), "register_label", "label#register_label{color:red;}");
-
-    int cin_valid = isCinValid(cin);
-    int patient_exist = ifPatientExists(cin);
-    int first_name_valid = isNameValid(first_name);
-    int last_name_valid = isNameValid(last_name);
-    int age_valid = isAgeValid(age);
-    int address_valid = isTextValid(address);
-    int phone_valid = isPhoneValid(phone);
-    int email_valid = checkEmail(email);
-    int password_valid = checkPassword(password);
-    int confirm_password_valid = strcmp(confirm_password, password) == 0;
-
-    if (!cin_valid) {
-        gtk_label_set_text(GTK_LABEL(register_cin_label), "Invalid cin");
-    } else {
-        if (patient_exist) {
-            gtk_label_set_text(GTK_LABEL(register_cin_label), "patient already exists");
-        } else {
-            gtk_label_set_text(GTK_LABEL(register_cin_label), "");
-        }
-    }
-
-    if (!first_name_valid) {
-        gtk_label_set_text(GTK_LABEL(register_first_name_label), "Must not be left empty");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_first_name_label), "");
-    }
-
-    if (!last_name_valid) {
-        gtk_label_set_text(GTK_LABEL(register_last_name_label), "Must not be left empty");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_last_name_label), "");
-    }
-
-    if (!age_valid) {
-        gtk_label_set_text(GTK_LABEL(register_age_label), "Invalid age (must be between 18 and 120)");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_age_label), "");
-    }
-
-    if (!address_valid) {
-        gtk_label_set_text(GTK_LABEL(register_address_label), "Must not be left empty");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_address_label), "");
-    }
-
-    if (!phone_valid) {
-        gtk_label_set_text(GTK_LABEL(register_phone_label), "Invalid phone number (must contain 10 digit)");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_phone_label), "");
-    }
-
-    if (!email_valid) {
-        gtk_label_set_text(GTK_LABEL(register_email_label), "Invalid email (must include '@', a valid domain, and no spaces).");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_email_label), "");
-    }
-
-    if (!password_valid) {
-        gtk_label_set_text(GTK_LABEL(register_password_label), "Invalid password (must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character)");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_password_label), "");
-    }
-    if (!confirm_password_valid) {
-        gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "Invalid confirm password");
-    } else {
-        gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "");
-    }
-
-    if (cin_valid && !patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid && email_valid &&  password_valid && confirm_password_valid) {
-        Login user;
-        Patient patient;
-        strcpy(patient.cin, cin);
-        strcpy(patient.fName, first_name);
-        strcpy(patient.lName, last_name);
-        patient.age = age;
-        strcpy(patient.address, address);
-        strcpy(patient.phone, phone);
-
-        strcpy(user.cin, cin);
-        strcpy(user.email, email);
-        strcpy(user.password, password);
-        user.role = USER;
-
-        addPatient(patient);
-        addAccount(user);
-
-        switch_to_window(btn, GINT_TO_POINTER(LOGIN));
-    }
-}
 
 //===================================================================//
 // set windows objs
@@ -4793,7 +4648,6 @@ void set_user_consult_win() {
 
     // Fetch User ID from window data
     char *cin = g_object_get_data(G_OBJECT(wins[USER_MENU]), "UserID");
-    printf("cin : %s", cin);
 
     // Update display with user consult data
     g_update_user_consult_display(NULL, grid);
@@ -5312,6 +5166,159 @@ void set_login_win_objs() {
     g_signal_connect(login_btn, "clicked", G_CALLBACK(g_login), widgets); //<----- will depend on the role of the user
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(MAIN));
 
+}
+
+void g_register(GtkButton *btn, gpointer data) {
+
+    GtkBuilder *builder = get_builder_instance();
+
+    GtkWidget **widgets = data;
+    if (!widgets) {
+        g_printerr("Error: objects is NULL\n");
+        return;
+    }
+
+    GtkWidget *cin_entry = widgets[0];
+    GtkWidget *first_name_entry = widgets[1];
+    GtkWidget *last_name_entry = widgets[2];
+    GtkWidget *age_entry = widgets[3];
+    GtkWidget *address_entry = widgets[4];
+    GtkWidget *phone_entry = widgets[5];
+    GtkWidget *email_entry = widgets[6];
+    GtkWidget *password_entry = widgets[7];
+    GtkWidget *confirm_password_entry = widgets[8];
+
+    const char *cin = get_text_from_entry(GTK_WIDGET(cin_entry));
+    const char *first_name = get_text_from_entry(GTK_WIDGET(first_name_entry));
+    const char *last_name = get_text_from_entry(GTK_WIDGET(last_name_entry));
+    const int age = get_int_from_entry(GTK_WIDGET(age_entry));
+    const char *address = get_text_from_entry(GTK_WIDGET(address_entry));
+    const char *phone = get_text_from_entry(GTK_WIDGET(phone_entry));
+    const char *email = get_text_from_entry(GTK_WIDGET(email_entry));
+    const char *password = get_text_from_entry(GTK_WIDGET(password_entry));
+    const char *confirm_password = get_text_from_entry(GTK_WIDGET(confirm_password_entry));
+
+    GObject *register_cin_label = gtk_builder_get_object(builder, "register_cin_label");
+    set_widget_css(GTK_WIDGET(register_cin_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_first_name_label = gtk_builder_get_object(builder, "register_first_name_label");
+    set_widget_css(GTK_WIDGET(register_first_name_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_last_name_label = gtk_builder_get_object(builder, "register_last_name_label");
+    set_widget_css(GTK_WIDGET(register_last_name_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_age_label = gtk_builder_get_object(builder, "register_age_label");
+    set_widget_css(GTK_WIDGET(register_age_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_address_label = gtk_builder_get_object(builder, "register_address_label");
+    set_widget_css(GTK_WIDGET(register_address_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_phone_label = gtk_builder_get_object(builder, "register_phone_label");
+    set_widget_css(GTK_WIDGET(register_phone_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_email_label = gtk_builder_get_object(builder, "register_email_label");
+    set_widget_css(GTK_WIDGET(register_email_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_password_label = gtk_builder_get_object(builder, "register_password_label");
+    set_widget_css(GTK_WIDGET(register_password_label), "register_label", "label#register_label{color:red;}");
+
+    GObject *register_confirm_password_label = gtk_builder_get_object(builder, "register_confirm_password_label");
+    set_widget_css(GTK_WIDGET(register_confirm_password_label), "register_label", "label#register_label{color:red;}");
+
+    int cin_valid = isCinValid(cin);
+    int patient_exist = ifPatientExists(cin);
+    int first_name_valid = isNameValid(first_name);
+    int last_name_valid = isNameValid(last_name);
+    int age_valid = isAgeValid(age);
+    int address_valid = isTextValid(address);
+    int phone_valid = isPhoneValid(phone);
+    int email_valid = checkEmail(email);
+    int email_exist = ifEmailExists(email);
+    int password_valid = checkPassword(password);
+    int confirm_password_valid = strcmp(confirm_password, password) == 0;
+
+    if (!cin_valid) {
+        gtk_label_set_text(GTK_LABEL(register_cin_label), "Invalid cin");
+    } else {
+        if (patient_exist) {
+            gtk_label_set_text(GTK_LABEL(register_cin_label), "patient already exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(register_cin_label), "");
+        }
+    }
+
+    if (!first_name_valid) {
+        gtk_label_set_text(GTK_LABEL(register_first_name_label), "Must not be left empty");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_first_name_label), "");
+    }
+
+    if (!last_name_valid) {
+        gtk_label_set_text(GTK_LABEL(register_last_name_label), "Must not be left empty");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_last_name_label), "");
+    }
+
+    if (!age_valid) {
+        gtk_label_set_text(GTK_LABEL(register_age_label), "Invalid age (must be between 18 and 120)");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_age_label), "");
+    }
+
+    if (!address_valid) {
+        gtk_label_set_text(GTK_LABEL(register_address_label), "Must not be left empty");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_address_label), "");
+    }
+
+    if (!phone_valid) {
+        gtk_label_set_text(GTK_LABEL(register_phone_label), "Invalid phone number (must contain 10 digit)");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_phone_label), "");
+    }
+
+    if (!email_valid) {
+        gtk_label_set_text(GTK_LABEL(register_email_label), "Invalid email (must include '@', a valid domain, and no spaces).");
+    } else {
+        if (email_exist) {
+            gtk_label_set_text(GTK_LABEL(register_email_label), "email already exists");
+        } else {
+            gtk_label_set_text(GTK_LABEL(register_email_label), "");
+        }
+    }
+
+    if (!password_valid) {
+        gtk_label_set_text(GTK_LABEL(register_password_label), "Invalid password (must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character)");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_password_label), "");
+    }
+    if (!confirm_password_valid) {
+        gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "Invalid confirm password");
+    } else {
+        gtk_label_set_text(GTK_LABEL(register_confirm_password_label), "");
+    }
+
+    if (cin_valid && !patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid && email_valid && !email_exist &&  password_valid && confirm_password_valid) {
+        Login user;
+        Patient patient;
+        strcpy(patient.cin, cin);
+        strcpy(patient.fName, first_name);
+        strcpy(patient.lName, last_name);
+        patient.age = age;
+        strcpy(patient.address, address);
+        strcpy(patient.phone, phone);
+
+        strcpy(user.cin, cin);
+        strcpy(user.email, email);
+        strcpy(user.password, password);
+        user.role = USER;
+
+        addPatient(patient);
+        addAccount(user);
+
+        set_login_win_objs();
+        switch_to_window(btn, GINT_TO_POINTER(LOGIN));
+    }
 }
 
 // set register windows objects

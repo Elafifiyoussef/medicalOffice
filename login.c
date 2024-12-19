@@ -40,7 +40,27 @@ int ifAccountExists(char *cin) {
     Login *account = malloc(sizeof(Login));
 
     while (fread(account, sizeof(Login), 1, file)) {
-        if (cin == account->cin) {
+        if (strcmp(cin , account->cin) == 0) {
+            fclose(file);
+            free(account);
+            return 1;
+        }
+    }
+    fclose(file);
+    free(account);
+    return 0;
+}
+
+int ifEmailExists(const char *email) {
+    FILE *file = fopen("login.bin", "rb");
+    if (file == NULL) {
+        printf("File not found\n");
+        return 0;
+    }
+    Login *account = malloc(sizeof(Login));
+
+    while (fread(account, sizeof(Login), 1, file)) {
+        if (strcmp(email , account->email) == 0) {
             fclose(file);
             free(account);
             return 1;

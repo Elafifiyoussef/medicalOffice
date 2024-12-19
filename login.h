@@ -27,5 +27,6 @@ void displayAccount(Login account);
 void displayAllAccounts();
 Role checkRole(Login *user);
 void deleteAccount(char *cin);
+int ifEmailExists(const char *email);
 
 #endif //LOGIN_H
