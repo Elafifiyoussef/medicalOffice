@@ -62,7 +62,7 @@ int isPhoneValid(const char* phone) {
             if (phone[i]< '0' || phone[i] > '9')
                 return 0;
         }
-        if(i!=9) {
+        if(i!=10) {
             return 0 ;
         }
         return 1;

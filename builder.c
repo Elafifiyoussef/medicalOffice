@@ -203,3 +203,19 @@ void clear_window_id(GtkWidget *widget, gpointer user_data) {
     int window_id = GPOINTER_TO_INT(user_data);
     g_object_set_data(windows[window_id], "UserID", NULL);
 }
+
+void set_text_view(GtkWidget *text_view, const char *text) {
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+    gtk_text_buffer_set_text(buffer, text, -1);
+}
+
+char *get_text_view(GtkWidget *text_view) {
+    // Get the text buffer associated with the GtkTextView
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+    // Retrieve the start and end iterators of the text buffer
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    // Get the text between the start and end iterators
+    char *text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    return g_strdup(text); // Return a copy of the text
+}

@@ -32,6 +32,8 @@ double get_double_from_entry(GtkWidget *entry);
 const char* get_dropdown_item(GtkDropDown *dropdown);
 void display_string_months(GListModel *model);
 void clear_window_id(GtkWidget *widget, gpointer user_data);
+void set_text_view(GtkWidget *text_view, const char *text);
+char *get_text_view(GtkWidget *text_view);
 
 #endif //GTK_FUNCS_H
 

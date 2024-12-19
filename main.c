@@ -116,14 +116,13 @@ void add_patient_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Add patient");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 500);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 600, 400);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 500);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 600, 400);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -220,9 +219,9 @@ void g_delete_patient(GtkButton *btn, gpointer data) {
 void delete_patient_popup(GtkButton *btn, gpointer data) {
     char* cin = data;
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "confirmer la suppression ");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 150);
-
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Confirm deletion");
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 150, 150);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -232,11 +231,25 @@ void delete_patient_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "del_pt_box", "box#del_pt_box{padding: 20px;}");
 
     char msg[100];
-    sprintf(msg, "are you sure about deleting the patient %s", cin);
+    sprintf(msg, "Are you sure about deleting the patient %s?", cin);
 
     GtkWidget *msg_label = gtk_label_new(msg);
-    GtkWidget *del_btn = gtk_button_new_with_label("delete");
-    set_widget_css(del_btn, "del_btn", "button#del_btn{background: #ff5040;}");
+    set_widget_css(msg_label, "msg_label",
+        "label#msg_label{"
+            "color: #ff6565;"
+        "}");
+    GtkWidget *del_btn = gtk_button_new_with_label("Delete");
+    set_widget_css(del_btn, "del_btn",
+        "button#del_btn{"
+            "border: 1px solid #ff6565;"
+            "color: #ff6565;"
+            "transition: all 0.3s;"
+        "}"
+        "#del_btn:hover{"
+            "background: #ff6565;"
+            "color: white;"
+            "transition: all 0.3s;"
+        "}");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
     gtk_box_append(GTK_BOX(box), msg_label);
@@ -297,8 +310,8 @@ void g_edit_patient(GtkButton *btn, gpointer data) {
     if (!cin_valid) {
         gtk_label_set_text(GTK_LABEL(label_cin), "CIN can only contain letters and numbers ([A-Za-z][0-9])!");
     } else {
-        if (patient_exist) {
-            gtk_label_set_text(GTK_LABEL(label_cin), "patient already exists");
+        if (!patient_exist) {
+            gtk_label_set_text(GTK_LABEL(label_cin), "patient does not exists");
         } else {
             gtk_label_set_text(GTK_LABEL(label_cin), "");
         }
@@ -334,7 +347,7 @@ void g_edit_patient(GtkButton *btn, gpointer data) {
         gtk_label_set_text(GTK_LABEL(label_phone), "");
     }
 
-    if (cin_valid && patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid) {
+    if (cin_valid && !patient_exist && first_name_valid && last_name_valid && age_valid && address_valid && phone_valid) {
         Patient patient;
         strcpy(patient.cin, cin);
         strcpy(patient.lName, lName);
@@ -356,14 +369,13 @@ void edit_patient_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Edit Patient");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 400);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 600, 400);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 500);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 600, 400);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -593,9 +605,11 @@ void g_add_consult(GtkButton *btn, gpointer data) {
 
     //Entries
     GtkEntry *entry_id_patient = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[2]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[3]);
+
+    //TextViews
+    GtkTextView *entry_symptoms = GTK_TEXT_VIEW(widgets[1]);
+    GtkTextView *entry_diagnosis = GTK_TEXT_VIEW(widgets[2]);
+    GtkTextView *entry_treatmentPlan = GTK_TEXT_VIEW(widgets[3]);
 
     //Labels
     GtkLabel *label_id_patient = GTK_LABEL(widgets[4]);
@@ -603,16 +617,12 @@ void g_add_consult(GtkButton *btn, gpointer data) {
     GtkLabel *label_diagnosis = GTK_LABEL(widgets[6]);
     GtkLabel *label_treatmentPlan = GTK_LABEL(widgets[7]);
 
-    if (!entry_id_patient || !entry_symptoms || !entry_diagnosis || !entry_treatmentPlan) {
-        g_printerr("Error: One of the entries is NULL\n");
-        return;
-    }
-
     // Retrieve values from each entry
     const char* patient_id = get_text_from_entry(GTK_WIDGET(entry_id_patient));
-    const char* symptoms = get_text_from_entry(GTK_WIDGET(entry_symptoms));
-    const char* diagnosis = get_text_from_entry(GTK_WIDGET(entry_diagnosis));
-    const char* treatmentPlan = get_text_from_entry(GTK_WIDGET(entry_treatmentPlan));
+
+    const char* symptoms = get_text_view(GTK_WIDGET(entry_symptoms));
+    const char* diagnosis = get_text_view(GTK_WIDGET(entry_diagnosis));
+    const char* treatmentPlan = get_text_view(GTK_WIDGET(entry_treatmentPlan));
 
     int cin_valid = isCinValid(patient_id);
     int patient_exists = ifPatientExists(patient_id);
@@ -669,14 +679,13 @@ void add_consult_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Add consultation");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 300);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 600, -1);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 400);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 600, -1);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -687,27 +696,94 @@ void add_consult_popup(GtkButton *btn, gpointer data) {
     GtkWidget *id_pt_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(id_pt_entry), "Patient Id (CIN)");
 
-    GtkWidget *symptoms_err_label = gtk_label_new("");
+     GtkWidget *symptoms_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(symptoms_err_label), "symptoms_err_label", "label#symptoms_err_label{color: red;}");
-    GtkWidget *symptoms_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(symptoms_entry), "Symptoms");
+
+    GtkWidget *symptoms_label = gtk_label_new("Symptoms:");
+    gtk_label_set_xalign(GTK_LABEL(symptoms_label), 0.0);
+    set_widget_css(GTK_WIDGET(symptoms_label), "title_label", "label#title_label{font-size: 18px; color: #78c4b5;}");
+
+    GtkWidget *symptoms_scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(symptoms_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    set_widget_css(GTK_WIDGET(symptoms_scroll), "scrolled_window",
+    "scrolledwindow#scrolled_window{"
+    "background: white;"
+    "min-height: 100px;"
+    "border: 1px solid #b5e5dc;"
+    "padding: 5px;"
+    "}");
+
+    GtkWidget *symptoms_text_view = gtk_text_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(symptoms_text_view), GTK_WRAP_WORD);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(symptoms_scroll), symptoms_text_view);
+    set_widget_css(GTK_WIDGET(symptoms_text_view), "text_view",
+    "textview#text_view{"
+    "background: transparent;"
+    "font-size: 18px;"
+    "}");
+
+    //=====================================
 
     GtkWidget *diagnosis_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(diagnosis_err_label), "diagnosis_err_label", "label#diagnosis_err_label{color: red;}");
-    GtkWidget *diagnosis_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(diagnosis_entry), "Diagnosis");
+
+    GtkWidget *diagnosis_label = gtk_label_new("Diagnosis:");
+    gtk_label_set_xalign(GTK_LABEL(diagnosis_label), 0.0);
+    set_widget_css(GTK_WIDGET(diagnosis_label), "title_label", "label#title_label{font-size: 18px; color: #78c4b5;}");
+
+    GtkWidget *diagnosis_scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(diagnosis_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    set_widget_css(GTK_WIDGET(diagnosis_scroll), "scrolled_window",
+    "scrolledwindow#scrolled_window{"
+    "background: white;"
+    "min-height: 100px;"
+    "border: 1px solid #b5e5dc;"
+    "padding: 5px;"
+    "}");
+
+    GtkWidget *diagnosis_text_view = gtk_text_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(diagnosis_text_view), GTK_WRAP_WORD);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(diagnosis_scroll), diagnosis_text_view);
+    set_widget_css(GTK_WIDGET(diagnosis_text_view), "text_view",
+    "textview#text_view{"
+    "background: transparent;"
+    "font-size: 18px;"
+    "}");
+
+    //=====================================
 
     GtkWidget *treatmentPlan_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(treatmentPlan_err_label), "treatmentPlan_err_label", "label#treatmentPlan_err_label{color: red;}");
-    GtkWidget *treatmentPlan_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
+
+    GtkWidget *treatmentPlan_label = gtk_label_new("Treatment plan:");
+    gtk_label_set_xalign(GTK_LABEL(treatmentPlan_label), 0.0);
+    set_widget_css(GTK_WIDGET(treatmentPlan_label), "title_label", "label#title_label{font-size: 18px; color: #78c4b5;}");
+
+    GtkWidget *treatmentPlan_scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(treatmentPlan_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    set_widget_css(GTK_WIDGET(treatmentPlan_scroll), "scrolled_window",
+    "scrolledwindow#scrolled_window{"
+    "background: white;"
+    "min-height: 100px;"
+    "border: 1px solid #b5e5dc;"
+    "padding: 5px;"
+    "}");
+
+    GtkWidget *treatmentPlan_text_view = gtk_text_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(treatmentPlan_text_view), GTK_WRAP_WORD);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(treatmentPlan_scroll), treatmentPlan_text_view);
+    set_widget_css(GTK_WIDGET(treatmentPlan_text_view), "text_view",
+    "textview#text_view{"
+    "background: transparent;"
+    "font-size: 18px;"
+    "}");
 
 
     GtkWidget **widgets =  g_new(GtkWidget*, 8);
     widgets[0] = id_pt_entry;
-    widgets[1] = symptoms_entry;
-    widgets[2] = diagnosis_entry;
-    widgets[3] = treatmentPlan_entry;
+    widgets[1] = symptoms_text_view;
+    widgets[2] = diagnosis_text_view;
+    widgets[3] = treatmentPlan_text_view;
     widgets[4] = id_pt_err_label;
     widgets[5] = symptoms_err_label;
     widgets[6] = diagnosis_err_label;
@@ -725,11 +801,14 @@ void add_consult_popup(GtkButton *btn, gpointer data) {
     gtk_box_append(GTK_BOX(box), id_pt_err_label);
     gtk_box_append(GTK_BOX(box), id_pt_entry);
     gtk_box_append(GTK_BOX(box), symptoms_err_label);
-    gtk_box_append(GTK_BOX(box), symptoms_entry);
+    gtk_box_append(GTK_BOX(box), symptoms_label);
+    gtk_box_append(GTK_BOX(box), symptoms_scroll);
     gtk_box_append(GTK_BOX(box), diagnosis_err_label);
-    gtk_box_append(GTK_BOX(box), diagnosis_entry);
+    gtk_box_append(GTK_BOX(box), diagnosis_label);
+    gtk_box_append(GTK_BOX(box), diagnosis_scroll);
     gtk_box_append(GTK_BOX(box), treatmentPlan_err_label);
-    gtk_box_append(GTK_BOX(box), treatmentPlan_entry);
+    gtk_box_append(GTK_BOX(box), treatmentPlan_label);
+    gtk_box_append(GTK_BOX(box), treatmentPlan_scroll);
     gtk_box_append(GTK_BOX(box), add_btn);
     gtk_box_append(GTK_BOX(box), cancel_btn);
 
@@ -747,8 +826,8 @@ void delete_consult_popup(GtkButton *btn, gpointer data) {
     int* id = data;
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Confirm deletion");
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 200, 100);
-
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -758,11 +837,25 @@ void delete_consult_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "del_box", "box#del_box{padding: 20px;}");
 
     char msg[100];
-    sprintf(msg, "are you sure about deleting this consultation (%d)", *id);
+    sprintf(msg, "are you sure about deleting this consultation?");
 
     GtkWidget *msg_label = gtk_label_new(msg);
+    set_widget_css(msg_label, "msg_label",
+        "label#msg_label{"
+            "color: #ff6565;"
+        "}");
     GtkWidget *del_btn = gtk_button_new_with_label("Delete");
-    set_widget_css(del_btn, "del_btn", "button#del_btn{background: #ff5040;}");
+    set_widget_css(del_btn, "del_btn",
+        "button#del_btn{"
+            "border: 1px solid #ff6565;"
+            "color: #ff6565;"
+            "transition: all 0.3s;"
+        "}"
+        "#del_btn:hover{"
+            "background: #ff6565;"
+            "color: white;"
+            "transition: all 0.3s;"
+        "}");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
     gtk_box_append(GTK_BOX(box), msg_label);
@@ -784,10 +877,10 @@ void g_edit_consult(GtkButton *btn, gpointer data) {
         return;
     }
 
-    //Entries
-    GtkEntry *entry_symptoms = GTK_ENTRY(widgets[0]);
-    GtkEntry *entry_diagnosis = GTK_ENTRY(widgets[1]);
-    GtkEntry *entry_treatmentPlan = GTK_ENTRY(widgets[2]);
+    //TextView
+    GtkTextView *entry_symptoms = GTK_TEXT_VIEW(widgets[0]);
+    GtkTextView *entry_diagnosis = GTK_TEXT_VIEW(widgets[1]);
+    GtkTextView *entry_treatmentPlan = GTK_TEXT_VIEW(widgets[2]);
 
     //Labels
     GtkLabel *label_symptoms = GTK_LABEL(widgets[3]);
@@ -796,9 +889,9 @@ void g_edit_consult(GtkButton *btn, gpointer data) {
 
     int consult_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "consultID"));
     // Retrieve values from each entry
-    const char* symptoms = get_text_from_entry(GTK_WIDGET(entry_symptoms));
-    const char* diagnosis = get_text_from_entry(GTK_WIDGET(entry_diagnosis));
-    const char* treatmentPlan = get_text_from_entry(GTK_WIDGET(entry_treatmentPlan));
+    const char* symptoms = get_text_view(GTK_WIDGET(entry_symptoms));
+    const char* diagnosis = get_text_view(GTK_WIDGET(entry_diagnosis));
+    const char* treatmentPlan = get_text_view(GTK_WIDGET(entry_treatmentPlan));
 
     int symptoms_valid = isTextValid(symptoms);
     int diagnosis_valid = isTextValid(diagnosis);
@@ -839,14 +932,13 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Edit consultation");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 400);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 600, -1);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 400);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 600, -1);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -855,31 +947,95 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     GtkWidget *symptoms_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(symptoms_err_label), "symptoms_err_label", "label#symptoms_err_label{color: red;}");
 
-    GtkWidget *symptoms_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(symptoms_entry), "Symptoms");
-    set_text_entry(symptoms_entry, consult->symptoms);
+    GtkWidget *symptoms_label = gtk_label_new("Symptoms:");
+    gtk_label_set_xalign(GTK_LABEL(symptoms_label), 0.0);
+    set_widget_css(GTK_WIDGET(symptoms_label), "title_label", "label#title_label{font-size: 18px; color: #78c4b5;}");
+
+    GtkWidget *symptoms_scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(symptoms_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    set_widget_css(GTK_WIDGET(symptoms_scroll), "scrolled_window",
+    "scrolledwindow#scrolled_window{"
+    "background: white;"
+    "min-height: 100px;"
+    "border: 1px solid #b5e5dc;"
+    "padding: 5px;"
+    "}");
+
+    GtkWidget *symptoms_text_view = gtk_text_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(symptoms_text_view), GTK_WRAP_WORD);
+    set_text_view(symptoms_text_view, consult->symptoms);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(symptoms_scroll), symptoms_text_view);
+    set_widget_css(GTK_WIDGET(symptoms_text_view), "text_view",
+    "textview#text_view{"
+    "background: transparent;"
+    "font-size: 18px;"
+    "}");
+
+    //=====================================
 
     GtkWidget *diagnosis_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(diagnosis_err_label), "diagnosis_err_label", "label#diagnosis_err_label{color: red;}");
 
-    GtkWidget *diagnosis_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(diagnosis_entry), "Diagnosis");
-    set_text_entry(diagnosis_entry, consult->diagnosis);
+    GtkWidget *diagnosis_label = gtk_label_new("Diagnosis:");
+    gtk_label_set_xalign(GTK_LABEL(diagnosis_label), 0.0);
+    set_widget_css(GTK_WIDGET(diagnosis_label), "title_label", "label#title_label{font-size: 18px; color: #78c4b5;}");
+
+    GtkWidget *diagnosis_scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(diagnosis_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    set_widget_css(GTK_WIDGET(diagnosis_scroll), "scrolled_window",
+    "scrolledwindow#scrolled_window{"
+    "background: white;"
+    "min-height: 100px;"
+    "border: 1px solid #b5e5dc;"
+    "padding: 5px;"
+    "}");
+
+    GtkWidget *diagnosis_text_view = gtk_text_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(diagnosis_text_view), GTK_WRAP_WORD);
+    set_text_view(diagnosis_text_view, consult->diagnosis);  // Assuming a function for setting text
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(diagnosis_scroll), diagnosis_text_view);
+    set_widget_css(GTK_WIDGET(diagnosis_text_view), "text_view",
+    "textview#text_view{"
+    "background: transparent;"
+    "font-size: 18px;"
+    "}");
+
+    //=====================================
 
     GtkWidget *treatmentPlan_err_label = gtk_label_new("");
     set_widget_css(GTK_WIDGET(treatmentPlan_err_label), "treatmentPlan_err_label", "label#treatmentPlan_err_label{color: red;}");
 
-    GtkWidget *treatmentPlan_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(treatmentPlan_entry), "Treatment plan");
-    set_text_entry(treatmentPlan_entry, consult->treatmentPlan);
+    GtkWidget *treatmentPlan_label = gtk_label_new("Treatment plan:");
+    gtk_label_set_xalign(GTK_LABEL(treatmentPlan_label), 0.0);
+    set_widget_css(GTK_WIDGET(treatmentPlan_label), "title_label", "label#title_label{font-size: 18px; color: #78c4b5;}");
 
-    GtkWidget **widget =  g_new(GtkWidget*, 6);
-    widget[0] = symptoms_entry;
-    widget[1] = diagnosis_entry;
-    widget[2] = treatmentPlan_entry;
-    widget[3] = symptoms_err_label;
-    widget[4] = diagnosis_err_label;
-    widget[5] = treatmentPlan_err_label;
+    GtkWidget *treatmentPlan_scroll = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(treatmentPlan_scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    set_widget_css(GTK_WIDGET(treatmentPlan_scroll), "scrolled_window",
+    "scrolledwindow#scrolled_window{"
+    "background: white;"
+    "min-height: 100px;"
+    "border: 1px solid #b5e5dc;"
+    "padding: 5px;"
+    "}");
+
+    GtkWidget *treatmentPlan_text_view = gtk_text_view_new();
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(treatmentPlan_text_view), GTK_WRAP_WORD);
+    set_text_view(treatmentPlan_text_view, consult->treatmentPlan);  // Assuming a function for setting text
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(treatmentPlan_scroll), treatmentPlan_text_view);
+    set_widget_css(GTK_WIDGET(treatmentPlan_text_view), "text_view",
+    "textview#text_view{"
+    "background: transparent;"
+    "font-size: 18px;"
+    "}");
+
+    GtkWidget **widgets = g_new(GtkWidget *, 6);
+    widgets[0] = symptoms_text_view;
+    widgets[1] = diagnosis_text_view;
+    widgets[2] = treatmentPlan_text_view;
+    widgets[3] = symptoms_err_label;
+    widgets[4] = diagnosis_err_label;
+    widgets[5] = treatmentPlan_err_label;
 
     // Create the buttons
     GtkWidget *edit_btn = gtk_button_new_with_label("Edit");
@@ -888,16 +1044,19 @@ void edit_consult_popup(GtkButton *btn, gpointer data) {
     g_object_set_data(G_OBJECT(edit_btn), "consultID", GINT_TO_POINTER(consult->id));
 
     // Connect the cancel button to close the window
-    g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_consult), widget);
+    g_signal_connect(edit_btn, "clicked", G_CALLBACK(g_edit_consult), widgets);
     g_signal_connect(cancel_btn, "clicked", G_CALLBACK(window_close), GTK_WINDOW(popup_window));
 
     // Append widgets to the box
     gtk_box_append(GTK_BOX(box), symptoms_err_label);
-    gtk_box_append(GTK_BOX(box), symptoms_entry);
+    gtk_box_append(GTK_BOX(box), symptoms_label);
+    gtk_box_append(GTK_BOX(box), symptoms_scroll);
     gtk_box_append(GTK_BOX(box), diagnosis_err_label);
-    gtk_box_append(GTK_BOX(box), diagnosis_entry);
+    gtk_box_append(GTK_BOX(box), diagnosis_label);
+    gtk_box_append(GTK_BOX(box), diagnosis_scroll);
     gtk_box_append(GTK_BOX(box), treatmentPlan_err_label);
-    gtk_box_append(GTK_BOX(box), treatmentPlan_entry);
+    gtk_box_append(GTK_BOX(box), treatmentPlan_label);
+    gtk_box_append(GTK_BOX(box), treatmentPlan_scroll);
     gtk_box_append(GTK_BOX(box), edit_btn);
     gtk_box_append(GTK_BOX(box), cancel_btn);
 
@@ -955,27 +1114,40 @@ void g_update_display_consult(GtkButton *btn, gpointer data) {
         "}");
 
         GtkWidget *symptoms_label = gtk_label_new(consults[i].symptoms);
+        gtk_label_set_yalign(GTK_LABEL(symptoms_label), 0.0);
+        gtk_label_set_wrap(GTK_LABEL(symptoms_label), TRUE);
+        gtk_label_set_ellipsize(GTK_LABEL(symptoms_label), PANGO_ELLIPSIZE_END);
+        gtk_widget_set_size_request(symptoms_label, 150, -1); // Set a width limit of 150px
         set_widget_css(GTK_WIDGET(symptoms_label), "header",
         "label#header {"
         "   font-size: 18px;"
         "   border: 1px solid #b5e5dc;"
-        "   padding: 10px 30px;"
+        "   padding: 10px;"
         "}");
 
         GtkWidget *diagnosis_label = gtk_label_new(consults[i].diagnosis);
+        gtk_label_set_yalign(GTK_LABEL(diagnosis_label), 0.0);
+        gtk_label_set_wrap(GTK_LABEL(diagnosis_label), TRUE);
+        gtk_label_set_ellipsize(GTK_LABEL(diagnosis_label), PANGO_ELLIPSIZE_END);
+        gtk_widget_set_size_request(diagnosis_label, 150, -1); // Set a width limit of 150px
         set_widget_css(GTK_WIDGET(diagnosis_label), "header",
         "label#header {"
         "   font-size: 18px;"
         "   border: 1px solid #b5e5dc;"
-        "   padding: 10px 30px;"
+        "   padding: 10px ;"
         "}");
 
         GtkWidget *treatmentPlan_label = gtk_label_new(consults[i].treatmentPlan);
+        gtk_label_set_yalign(GTK_LABEL(treatmentPlan_label), 0.0);
+        gtk_label_set_wrap(GTK_LABEL(treatmentPlan_label), TRUE);
+        gtk_label_set_ellipsize(GTK_LABEL(treatmentPlan_label), PANGO_ELLIPSIZE_END);
+        gtk_widget_set_size_request(treatmentPlan_label, 150, -1); // Set a width limit of 150px
         set_widget_css(GTK_WIDGET(treatmentPlan_label), "header",
         "label#header {"
+        "   min-width: 120px; "
         "   font-size: 18px;"
         "   border: 1px solid #b5e5dc;"
-        "   padding: 10px 30px;"
+        "   padding: 10px ;"
         "}");
 
         time_t t = consults[i].dateTime;
@@ -1171,14 +1343,13 @@ void add_rdv_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Add Rendezvous");
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 300);
-
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 400);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 360, 300);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -1194,6 +1365,9 @@ void add_rdv_popup(GtkButton *btn, gpointer data) {
     set_widget_css(GTK_WIDGET(date_err_label), "date_err_label", "label#date_err_label{color: red;}");
 
     GtkWidget *dateBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_size_request(dateBox, 360, 25);
+    gtk_widget_set_halign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
 
     // years
     const char * years[] = {"2024", "2025", "2026", "2027", "2028", "2029", NULL};
@@ -1218,11 +1392,15 @@ void add_rdv_popup(GtkButton *btn, gpointer data) {
     hours[11] = NULL;
 
     GtkWidget *year_dropdown = gtk_drop_down_new(G_LIST_MODEL(year_model), NULL);
+    set_widget_css(year_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
     GtkWidget *month_dropdown = gtk_drop_down_new(G_LIST_MODEL(month_model), NULL);
+    set_widget_css(month_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
     GtkStringList * day_model = gtk_string_list_new(days);
     GtkWidget *day_dropdown = gtk_drop_down_new(G_LIST_MODEL(day_model), NULL);
+    set_widget_css(day_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
     GtkStringList * hour_model = gtk_string_list_new(hours);
     GtkWidget *hour_dropdown = gtk_drop_down_new(G_LIST_MODEL(hour_model), NULL);
+    set_widget_css(hour_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     gtk_box_append(GTK_BOX(dateBox), year_dropdown);
     gtk_box_append(GTK_BOX(dateBox), month_dropdown);
@@ -1289,11 +1467,10 @@ void g_delete_rdv(GtkButton *btn, gpointer data) {
 }
 
 void delete_rdv_popup(GtkButton *btn, gpointer data) {
-    int* id = data;
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Confirm deletion");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 200, 100);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 150, 150);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -1303,10 +1480,25 @@ void delete_rdv_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "del_box", "box#del_box{padding: 20px;}");
 
     char msg[100];
-    sprintf(msg, "are you sure about deleting this rendezvous (ID: %d)", *id);
+    sprintf(msg, "Are you sure about deleting this rendezvous?");
 
     GtkWidget *msg_label = gtk_label_new(msg);
+    set_widget_css(msg_label, "msg_label",
+        "label#msg_label{"
+            "color: #ff6565;"
+        "}");
     GtkWidget *del_btn = gtk_button_new_with_label("Delete");
+    set_widget_css(del_btn, "del_btn",
+        "button#del_btn{"
+            "border: 1px solid #ff6565;"
+            "color: #ff6565;"
+            "transition: all 0.3s;"
+        "}"
+        "#del_btn:hover{"
+            "background: #ff6565;"
+            "color: white;"
+            "transition: all 0.3s;"
+        "}");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
     gtk_box_append(GTK_BOX(box), msg_label);
@@ -1336,7 +1528,6 @@ void g_edit_rdv(GtkButton *btn, gpointer data) {
 
     //Labels
     GtkLabel *label_date = GTK_LABEL(widgets[5]);
-    // GtkLabel *label_state = GTK_LABEL(widgets[6]);
 
     int rdv_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "rdvID"));
     // Retrieve values from each entry
@@ -1404,14 +1595,13 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Edit rendezvous");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 400);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 200);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 400);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 360, 200);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -1421,6 +1611,9 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
     set_widget_css(GTK_WIDGET(date_err_label), "date_err_label", "label#date_err_label{color: red;}");
 
     GtkWidget *dateBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_size_request(dateBox, 360, 25);
+    gtk_widget_set_halign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
 
     const char * years[] = {"2024", "2025", "2026", "2027", "2028", "2029", NULL};
     GtkStringList *year_model = gtk_string_list_new(years);
@@ -1453,17 +1646,21 @@ void edit_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *year_dropdown = gtk_drop_down_new(G_LIST_MODEL(year_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(year_dropdown),year_pos);
+    set_widget_css(year_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     GtkWidget *month_dropdown = gtk_drop_down_new(G_LIST_MODEL(month_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(month_dropdown),RV->month-1);
     GtkStringList * day_model = gtk_string_list_new(days);
+    set_widget_css(month_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     GtkWidget *day_dropdown = gtk_drop_down_new(G_LIST_MODEL(day_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(day_dropdown),RV->day-1);
     GtkStringList * hour_model = gtk_string_list_new(hours);
+    set_widget_css(day_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     GtkWidget *hour_dropdown = gtk_drop_down_new(G_LIST_MODEL(hour_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(hour_dropdown),hour_pos);
+    set_widget_css(hour_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     gtk_box_append(GTK_BOX(dateBox), year_dropdown);
     gtk_box_append(GTK_BOX(dateBox), month_dropdown);
@@ -1728,14 +1925,13 @@ void add_payment_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Add invoice");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 300);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 200);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 400);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 360, 200);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -1794,8 +1990,8 @@ void delete_payment_popup(GtkButton *btn, gpointer data) {
     int* id = data;
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Confirm deletion");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 200, 100);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 150, 150);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
@@ -1805,10 +2001,25 @@ void delete_payment_popup(GtkButton *btn, gpointer data) {
     set_widget_css(box, "del_box", "box#del_box{padding: 20px;}");
 
     char msg[100];
-    sprintf(msg, "are you sure about deleting this payment (ID: %d)", *id);
+    sprintf(msg, "are you sure about deleting this payment?");
 
     GtkWidget *msg_label = gtk_label_new(msg);
+    set_widget_css(msg_label, "msg_label",
+        "label#msg_label{"
+            "color: #ff6565;"
+        "}");
     GtkWidget *del_btn = gtk_button_new_with_label("Delete");
+    set_widget_css(del_btn, "del_btn",
+       "button#del_btn{"
+           "border: 1px solid #ff6565;"
+           "color: #ff6565;"
+           "transition: all 0.3s;"
+       "}"
+       "#del_btn:hover{"
+           "background: #ff6565;"
+           "color: white;"
+           "transition: all 0.3s;"
+       "}");
     GtkWidget *cancel_btn = gtk_button_new_with_label("Cancel");
 
     gtk_box_append(GTK_BOX(box), msg_label);
@@ -1866,14 +2077,13 @@ void edit_payment_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "Edit Invoice");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 400);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 200);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    gtk_widget_set_size_request(box, 360, 400);
-    gtk_window_set_child(GTK_WINDOW(popup_window), box);
+    gtk_widget_set_size_request(box, 360, 200);
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
     set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
@@ -2207,18 +2417,26 @@ void g_request_rdv(GtkButton *btn, gpointer data) {
 void request_rdv_popup(GtkButton *btn, gpointer data) {
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "Request a Rendezvous");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
-
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Request Rendezvous");
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 150);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_size_request(box, 360, 150);
+    gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
     GtkWidget *date_err_label = gtk_label_new("");
+    set_widget_css(GTK_WIDGET(date_err_label), "date_err_label", "label#date_err_label{color: red;}");
 
     GtkWidget *dateBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_size_request(dateBox, 360, 25);
+    gtk_widget_set_halign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
 
     // years
     const char * years[] = {"2024", "2025", "2026", "2027", "2028", "2029", NULL};
@@ -2243,11 +2461,15 @@ void request_rdv_popup(GtkButton *btn, gpointer data) {
     hours[11] = NULL;
 
     GtkWidget *year_dropdown = gtk_drop_down_new(G_LIST_MODEL(year_model), NULL);
+    set_widget_css(year_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
     GtkWidget *month_dropdown = gtk_drop_down_new(G_LIST_MODEL(month_model), NULL);
+    set_widget_css(month_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
     GtkStringList * day_model = gtk_string_list_new(days);
     GtkWidget *day_dropdown = gtk_drop_down_new(G_LIST_MODEL(day_model), NULL);
+    set_widget_css(day_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
     GtkStringList * hour_model = gtk_string_list_new(hours);
     GtkWidget *hour_dropdown = gtk_drop_down_new(G_LIST_MODEL(hour_model), NULL);
+    set_widget_css(hour_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     gtk_box_append(GTK_BOX(dateBox), year_dropdown);
     gtk_box_append(GTK_BOX(dateBox), month_dropdown);
@@ -2312,19 +2534,35 @@ void g_cancel_rdv(GtkButton *btn, gpointer data) {
 void cancel_rdv_popup(GtkButton *btn, gpointer data) {
     int* id = data;
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "confirmer la suppression ");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Confirm deletion");
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 150, 150);
 
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    set_widget_css(box, "del_pt_box", "box#del_pt_box{padding: 20px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
     char msg[150];
     sprintf(msg, "Are you sure you want to cancel your appointment?\nThe appointment will not be canceled until it is confirmed by an admin.");
 
     GtkWidget *msg_label = gtk_label_new(msg);
-    GtkWidget *del_btn = gtk_button_new_with_label("cancel appointment");
+    set_widget_css(msg_label, "msg_label",
+        "label#msg_label{"
+            "color: #ff6565;"
+        "}");
+    GtkWidget *del_btn = gtk_button_new_with_label("Cancel appointment");
+    set_widget_css(del_btn, "del_btn",
+        "button#del_btn{"
+            "border: 1px solid #ff6565;"
+            "color: #ff6565;"
+            "transition: all 0.3s;"
+        "}"
+        "#del_btn:hover{"
+            "background: #ff6565;"
+            "color: white;"
+            "transition: all 0.3s;"
+        "}");
     GtkWidget *cancel_btn = gtk_button_new_with_label("back");
 
     gtk_box_append(GTK_BOX(box), msg_label);
@@ -2420,22 +2658,29 @@ void g_reschedule_rdv(GtkButton *btn, gpointer data) {
 }
 
 void reschedule_rdv_popup(GtkButton *btn, gpointer data) {
-
     const Rendezvous *RV = data;
     // Create the popup window
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "reschedule rendezvous");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 300, 600);
-
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Reschedule rendezvous");
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 360, 150);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
     // Create a vertical box for layout
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_size_request(box, 360, 150);
+    gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
     gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
     GtkWidget *date_err_label = gtk_label_new("");
+    set_widget_css(GTK_WIDGET(date_err_label), "date_err_label", "label#date_err_label{color: red;}");
 
     GtkWidget *dateBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+    gtk_widget_set_size_request(dateBox, 360, 25);
+    gtk_widget_set_halign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(dateBox), GTK_ALIGN_CENTER);
 
     const char * years[] = {"2024", "2025", "2026", "2027", "2028", "2029", NULL};
     GtkStringList *year_model = gtk_string_list_new(years);
@@ -2468,17 +2713,21 @@ void reschedule_rdv_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *year_dropdown = gtk_drop_down_new(G_LIST_MODEL(year_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(year_dropdown),year_pos);
+    set_widget_css(year_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     GtkWidget *month_dropdown = gtk_drop_down_new(G_LIST_MODEL(month_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(month_dropdown),RV->month-1);
     GtkStringList * day_model = gtk_string_list_new(days);
+    set_widget_css(month_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     GtkWidget *day_dropdown = gtk_drop_down_new(G_LIST_MODEL(day_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(day_dropdown),RV->day-1);
     GtkStringList * hour_model = gtk_string_list_new(hours);
+    set_widget_css(day_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     GtkWidget *hour_dropdown = gtk_drop_down_new(G_LIST_MODEL(hour_model), NULL);
     gtk_drop_down_set_selected(GTK_DROP_DOWN(hour_dropdown),hour_pos);
+    set_widget_css(hour_dropdown, "date_dropdown", "dropdown#date_dropdown{min-width: 90px;}");
 
     gtk_box_append(GTK_BOX(dateBox), year_dropdown);
     gtk_box_append(GTK_BOX(dateBox), month_dropdown);
@@ -2501,7 +2750,6 @@ void reschedule_rdv_popup(GtkButton *btn, gpointer data) {
     sprintf(state_text, "%s --> Pending", RV->state);
     GtkWidget *state_label = gtk_label_new(state_text);
 
-
     GtkWidget **widgets =  g_new(GtkWidget*, 6);
     widgets[0] = year_dropdown;
     widgets[1] = month_dropdown;
@@ -2509,7 +2757,6 @@ void reschedule_rdv_popup(GtkButton *btn, gpointer data) {
     widgets[3] = hour_dropdown;
     widgets[4] = state_label;
     widgets[5] = date_err_label;
-
 
     // Create the buttons
     GtkWidget *reschedule_btn = gtk_button_new_with_label("Reschedule");
@@ -2663,43 +2910,83 @@ void show_consult_info_popup(GtkButton *btn, gpointer data) {
 
     GtkWidget *popup_window = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(popup_window), "consultation info");
-    gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
-
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
+    gtk_window_set_default_size(GTK_WINDOW(popup_window), 500, 150);
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
-    GtkWidget *grid = gtk_grid_new();
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_size_request(box, 500, 200);
+    gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
+    gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
 
-    GtkWidget *symptoms_header_label = gtk_label_new("Symptoms");
+    GtkWidget *symptoms_header_label = gtk_label_new("Symptoms:");
+    gtk_widget_set_halign(GTK_WIDGET(symptoms_header_label), GTK_ALIGN_START);
+    set_widget_css(symptoms_header_label, "header", "label#header{font-size: 20px; font-weight: bold; }");
+
     char symptoms_text[1024];
     sprintf(symptoms_text, "%s", consult->symptoms);
     GtkWidget *symptoms_label = gtk_label_new(symptoms_text);
+    gtk_widget_set_halign(GTK_WIDGET(symptoms_label), GTK_ALIGN_START);
+    gtk_label_set_xalign(GTK_LABEL(symptoms_label), 0.0);
+    gtk_label_set_wrap(GTK_LABEL(symptoms_label), TRUE);
+    set_widget_css(symptoms_label, "header",
+    "label#header{"
+    "font-size: 18px; "
+    "border: 1px dashed #d8d5f7; "
+    "min-width: 480px; "
+    "padding: 5px;"
+    "}");
 
-    GtkWidget *diagnosis_header_label = gtk_label_new("Diagnosis");
+    GtkWidget *diagnosis_header_label = gtk_label_new("Diagnosis:");
+    gtk_widget_set_halign(GTK_WIDGET(diagnosis_header_label), GTK_ALIGN_START);
+    set_widget_css(diagnosis_header_label, "header", "label#header{font-size: 20px; font-weight: bold; }");
+
     char diagnosis_text[1024];
     sprintf(diagnosis_text, "%s", consult->diagnosis);
     GtkWidget *diagnosis_label = gtk_label_new(diagnosis_text);
+    gtk_widget_set_halign(GTK_WIDGET(diagnosis_label), GTK_ALIGN_START);
+    gtk_label_set_xalign(GTK_LABEL(diagnosis_label), 0.0);
+    gtk_label_set_wrap(GTK_LABEL(diagnosis_label), TRUE);
+    set_widget_css(diagnosis_label, "header",
+    "label#header{"
+    "font-size: 18px; "
+    "border: 1px dashed #d8d5f7; "
+    "min-width: 480px; "
+    "padding: 5px;"
+    "}");
 
-    GtkWidget *treatment_plan_header_label = gtk_label_new("Treatment plan");
+    GtkWidget *treatment_plan_header_label = gtk_label_new("Treatment plan:");
+    gtk_widget_set_halign(GTK_WIDGET(treatment_plan_header_label), GTK_ALIGN_START);
+    set_widget_css(treatment_plan_header_label, "header", "label#header{font-size: 20px; font-weight: bold; }");
+
     char treatment_plan_text[1024];
     sprintf(treatment_plan_text, "%s", consult->treatmentPlan);
     GtkWidget *treatment_plan_label = gtk_label_new(treatment_plan_text);
+    gtk_widget_set_halign(GTK_WIDGET(treatment_plan_label), GTK_ALIGN_START);
+    gtk_label_set_xalign(GTK_LABEL(treatment_plan_label), 0.0);
+    gtk_label_set_wrap(GTK_LABEL(treatment_plan_label), TRUE);
+    set_widget_css(treatment_plan_label, "header",
+    "label#header{"
+    "font-size: 18px; "
+    "border: 1px dashed #d8d5f7; "
+    "min-width: 480px; "
+    "padding: 5px;"
+    "}");
 
     GtkWidget *return_btn = gtk_button_new_with_label("Return");
 
-    gtk_grid_attach(GTK_GRID(grid), symptoms_header_label, 0, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), symptoms_label, 0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), diagnosis_header_label, 0, 2, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), diagnosis_label, 0, 3, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), treatment_plan_header_label, 0, 4, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), treatment_plan_label, 0, 5, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), return_btn, 0, 6, 1, 1);
+    gtk_box_append(GTK_BOX(box), symptoms_header_label);
+    gtk_box_append(GTK_BOX(box), symptoms_label);
+    gtk_box_append(GTK_BOX(box), diagnosis_header_label);
+    gtk_box_append(GTK_BOX(box), diagnosis_label);
+    gtk_box_append(GTK_BOX(box), treatment_plan_header_label);
+    gtk_box_append(GTK_BOX(box), treatment_plan_label);
+    gtk_box_append(GTK_BOX(box), return_btn);
 
     g_signal_connect(return_btn, "clicked", G_CALLBACK(window_close), popup_window);
-
-    gtk_window_set_child(GTK_WINDOW(popup_window), grid);
 
     gtk_window_present(GTK_WINDOW(popup_window));
 }
@@ -2764,7 +3051,7 @@ void g_update_user_consult_display(GtkButton *btn, gpointer data) {
         "   margin-top: 10px;"
         "}");
 
-        GtkWidget *info_image = gtk_image_new_from_file("imgs/delete_2.svg");
+        GtkWidget *info_image = gtk_image_new_from_file("imgs/info_3.svg");
         gtk_image_set_pixel_size(GTK_IMAGE(info_image), 25);
         set_widget_css(GTK_WIDGET(info_image), "delete_img",
         "image#delete_img {"
@@ -2786,7 +3073,6 @@ void g_update_user_consult_display(GtkButton *btn, gpointer data) {
     }
 }
 
-
 //===================================================================//
 // User payment functionalities
 //===================================================================//
@@ -2795,42 +3081,76 @@ void show_bill_info_popup(GtkButton *btn, gpointer data) {
     Payment *payment = data;
 
     GtkWidget *popup_window = gtk_window_new();
-    gtk_window_set_title(GTK_WINDOW(popup_window), "payment info");
+    gtk_window_set_title(GTK_WINDOW(popup_window), "Invoice info");
+    gtk_window_set_resizable(GTK_WINDOW(popup_window), FALSE);
     gtk_window_set_default_size(GTK_WINDOW(popup_window), 400, 150);
-
     gtk_window_set_modal(GTK_WINDOW(popup_window), TRUE);
 
-    GtkWidget *grid = gtk_grid_new();
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+    gtk_widget_set_size_request(box, 400, 200);
+    gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(box), GTK_ALIGN_CENTER);
+    set_widget_css(box, "edit_box", "box#edit_box{padding: 10px;}");
+    gtk_window_set_child(GTK_WINDOW(popup_window), box);
 
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 10);
-
-    GtkWidget *date_header_label = gtk_label_new("Date");
+    GtkWidget *date_header_label = gtk_label_new("Date:");
+    gtk_widget_set_halign(GTK_WIDGET(date_header_label), GTK_ALIGN_START);
+    set_widget_css(date_header_label, "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     char date_text[30];
     time_t dateTime = time(&payment->dateTime);
     struct tm payment_dtm = *localtime(&dateTime);
     sprintf(date_text, "%d-%d-%d", payment_dtm.tm_year + 1900, payment_dtm.tm_mon + 1, payment_dtm.tm_mday);
     GtkWidget *date_label = gtk_label_new(date_text);
+    gtk_widget_set_halign(GTK_WIDGET(date_label), GTK_ALIGN_CENTER);
+    gtk_label_set_wrap(GTK_LABEL(date_label), TRUE);
+    set_widget_css(date_label, "header",
+    "label#header{"
+    "font-size: 18px; "
+    "border: 1px dashed #e8d1c1; "
+    "min-width: 400px; "
+    "}");
 
-    GtkWidget *amount_header_label = gtk_label_new("Amount");
+    GtkWidget *amount_header_label = gtk_label_new("Amount:");
+    gtk_widget_set_halign(GTK_WIDGET(amount_header_label), GTK_ALIGN_START);
+    set_widget_css(amount_header_label, "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     char amount_text[8];
-    sprintf(amount_text, "%f", payment->amount);
+    sprintf(amount_text, "%.2f", payment->amount);
     GtkWidget *amount_label = gtk_label_new(amount_text);
+    gtk_widget_set_halign(GTK_WIDGET(amount_label), GTK_ALIGN_CENTER);
+    gtk_label_set_wrap(GTK_LABEL(amount_label), TRUE);
+    set_widget_css(amount_label, "header",
+    "label#header{"
+    "font-size: 18px; "
+    "border: 1px dashed #e8d1c1; "
+    "min-width: 400px; "
+    "}");
 
+    GtkWidget *state_header_label = gtk_label_new("State:");
+    gtk_widget_set_halign(GTK_WIDGET(state_header_label), GTK_ALIGN_START);
+    set_widget_css(state_header_label, "header", "label#header{font-size: 20px; font-weight: bold; }");
 
+    GtkWidget *state_label = gtk_label_new(payment->state);
+    gtk_widget_set_halign(GTK_WIDGET(state_label), GTK_ALIGN_CENTER);
+    gtk_label_set_wrap(GTK_LABEL(state_label), TRUE);
+    set_widget_css(state_label, "header",
+    "label#header{"
+    "font-size: 18px; "
+    "border: 1px dashed #e8d1c1; "
+    "min-width: 400px; "
+    "}");
     GtkWidget *return_btn = gtk_button_new_with_label("Return");
 
-    gtk_grid_attach(GTK_GRID(grid), date_header_label, 0, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), date_label, 0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), amount_header_label, 0, 2, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), amount_label, 0, 3, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), return_btn, 0, 4, 1, 1);
+    gtk_box_append(GTK_BOX(box), date_header_label);
+    gtk_box_append(GTK_BOX(box), date_label);
+    gtk_box_append(GTK_BOX(box), amount_header_label);
+    gtk_box_append(GTK_BOX(box), amount_label);
+    gtk_box_append(GTK_BOX(box), state_header_label);
+    gtk_box_append(GTK_BOX(box), state_label);
+    gtk_box_append(GTK_BOX(box), return_btn);
 
     g_signal_connect(return_btn, "clicked", G_CALLBACK(window_close), popup_window);
-
-    gtk_window_set_child(GTK_WINDOW(popup_window), grid);
 
     gtk_window_present(GTK_WINDOW(popup_window));
 }
@@ -2893,7 +3213,7 @@ void g_update_user_bill_display(GtkButton *btn, gpointer data) {
         "   margin-top: 10px;"
         "}");
 
-        GtkWidget *info_image = gtk_image_new_from_file("imgs/delete_4.svg");
+        GtkWidget *info_image = gtk_image_new_from_file("imgs/info_4.svg");
         gtk_image_set_pixel_size(GTK_IMAGE(info_image), 25);
         set_widget_css(GTK_WIDGET(info_image), "delete_img",
         "image#delete_img {"
@@ -3445,14 +3765,14 @@ void set_consult_win() {
         GObject *scrolled_window = gtk_builder_get_object(builder, "admin_consult_scrolled_window");
 
         GtkGrid *grid = GTK_GRID(gtk_builder_get_object(builder, "admin_consult_grid"));
+        gtk_widget_set_size_request(GTK_WIDGET(grid), 800, -1);
         gtk_widget_set_halign(GTK_WIDGET(grid), GTK_ALIGN_CENTER);
         gtk_widget_set_valign(GTK_WIDGET(grid), GTK_ALIGN_START);
         set_widget_css(GTK_WIDGET(grid), "admin_consult_grid",
         "grid#admin_consult_grid {"
-        "   min-width: 1000px;"
-        "   min-height: 800px;"
         "   margin-top: 50px;"
         "   margin-bottom: 50px;"
+        "   padding: 50px;"
         "}");
 
         // Define grid headers
@@ -3882,7 +4202,14 @@ void set_menu_win_objs() {
         g_printerr("Failed to get 'main_window' from builder UI file\n");
     }
     gtk_window_maximize(GTK_WINDOW(admin_menu_window));
-    set_widget_css(GTK_WIDGET(admin_menu_window), "menu_window", "window#menu_window { background: #F2FAFD;}");
+    set_widget_css(GTK_WIDGET(admin_menu_window), "menu_window",
+    "window#menu_window { "
+    "background: url('file:///C:/Users/asus/Documents/medicalOffice/cmake-build-debug/imgs/MedOfficeBg.png');"
+    "background-repeat: no-repeat; "
+    "background-position: center; "
+    "background-color: #f7f7f7 ; "
+    "background-size: cover;"
+    "}");
     //-------------------------------------
 
     GObject *menu_grid = gtk_builder_get_object(builder, "admin_menu_grid");
@@ -4195,53 +4522,59 @@ void set_user_info_objs() {
 
     // User cin labels
     GObject *user_cin_title_label = gtk_builder_get_object(builder, "user_cin_title_label");
-    set_widget_css(GTK_WIDGET(user_cin_title_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    gtk_widget_set_halign(GTK_WIDGET(user_cin_title_label), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(user_cin_title_label), "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     GObject *user_cin_value_label = gtk_builder_get_object(builder, "user_cin_value_label");
     gtk_label_set_text(GTK_LABEL(user_cin_value_label), cin);
-    set_widget_css(GTK_WIDGET(user_cin_value_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    set_widget_css(GTK_WIDGET(user_cin_value_label), "user_info_label", "label#user_info_label{font-size: 18px;}");
 
     // User last name labels
     GObject *user_last_name_title_label = gtk_builder_get_object(builder, "user_last_name_title_label");
-    set_widget_css(GTK_WIDGET(user_last_name_title_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    gtk_widget_set_halign(GTK_WIDGET(user_last_name_title_label), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(user_last_name_title_label), "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     GObject *user_last_name_value_label = gtk_builder_get_object(builder, "user_last_name_value_label");
     gtk_label_set_text(GTK_LABEL(user_last_name_value_label), patient->lName);
-    set_widget_css(GTK_WIDGET(user_last_name_value_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    set_widget_css(GTK_WIDGET(user_last_name_value_label), "user_info_label", "label#user_info_label{font-size: 18px;}");
 
     // User first name labels
     GObject *user_first_name_title_label = gtk_builder_get_object(builder, "user_first_name_title_label");
-    set_widget_css(GTK_WIDGET(user_first_name_title_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    gtk_widget_set_halign(GTK_WIDGET(user_first_name_title_label), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(user_first_name_title_label), "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     GObject *user_first_name_value_label = gtk_builder_get_object(builder, "user_first_name_value_label");
     gtk_label_set_text(GTK_LABEL(user_first_name_value_label), patient->fName);
-    set_widget_css(GTK_WIDGET(user_first_name_value_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    set_widget_css(GTK_WIDGET(user_first_name_value_label), "user_info_label", "label#user_info_label{font-size: 18px;}");
 
     // User age labels
     GObject *user_age_title_label = gtk_builder_get_object(builder, "user_age_title_label");
-    set_widget_css(GTK_WIDGET(user_age_title_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    gtk_widget_set_halign(GTK_WIDGET(user_age_title_label), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(user_age_title_label), "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     GObject *user_age_value_label = gtk_builder_get_object(builder, "user_age_value_label");
     char age_text[4];
     sprintf(age_text, "%d", patient->age);
     gtk_label_set_text(GTK_LABEL(user_age_value_label), age_text);
-    set_widget_css(GTK_WIDGET(user_age_value_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    set_widget_css(GTK_WIDGET(user_age_value_label), "user_info_label", "label#user_info_label{font-size: 18px;}");
 
     // User address labels
     GObject *user_address_title_label = gtk_builder_get_object(builder, "user_address_title_label");
-    set_widget_css(GTK_WIDGET(user_address_title_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    gtk_widget_set_halign(GTK_WIDGET(user_address_title_label), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(user_address_title_label), "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     GObject *user_address_value_label = gtk_builder_get_object(builder, "user_address_value_label");
     gtk_label_set_text(GTK_LABEL(user_address_value_label), patient->address);
-    set_widget_css(GTK_WIDGET(user_address_value_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    set_widget_css(GTK_WIDGET(user_address_value_label), "user_info_label", "label#user_info_label{font-size: 18px;}");
 
     // User phone labels
     GObject *user_phone_title_label = gtk_builder_get_object(builder, "user_phone_title_label");
-    set_widget_css(GTK_WIDGET(user_phone_title_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    gtk_widget_set_halign(GTK_WIDGET(user_phone_title_label), GTK_ALIGN_START);
+    set_widget_css(GTK_WIDGET(user_phone_title_label), "header", "label#header{font-size: 20px; font-weight: bold; }");
 
     GObject *user_phone_value_label = gtk_builder_get_object(builder, "user_phone_value_label");
     gtk_label_set_text(GTK_LABEL(user_phone_value_label), patient->phone);
-    set_widget_css(GTK_WIDGET(user_phone_value_label), "user_info_label", "label#user_info_label{font-size: 28px;}");
+    set_widget_css(GTK_WIDGET(user_phone_value_label), "user_info_label", "label#user_info_label{font-size: 18px;}");
 
     GObject *user_return_pt_btn = gtk_builder_get_object(builder, "user_info_back_btn");
 
@@ -4580,7 +4913,14 @@ void set_user_menu_objs() {
         g_printerr("Failed to get 'user_menu_window' from builder UI file\n");
     }
     gtk_window_maximize(GTK_WINDOW(user_menu_window));
-    set_widget_css(GTK_WIDGET(user_menu_window), "menu_window", "window#menu_window { background: #F2FAFD;}");
+    set_widget_css(GTK_WIDGET(user_menu_window), "menu_window",
+    "window#menu_window { "
+    "background: url('file:///C:/Users/asus/Documents/medicalOffice/cmake-build-debug/imgs/MedOfficeBg.png');"
+    "background-repeat: no-repeat; "
+    "background-position: center; "
+    "background-color: #f7f7f7 ; "
+    "background-size: cover;"
+    "}");
     //-------------------------------------
 
     GObject *menu_grid = gtk_builder_get_object(builder, "user_menu_grid");
@@ -4795,7 +5135,7 @@ void set_user_menu_objs() {
      gtk_overlay_add_overlay(GTK_OVERLAY(invoice_overlay), invoice_image);
      //-------------------------------------
 
-     GtkWidget *invoice_label = gtk_label_new("Invoices");
+     GtkWidget *invoice_label = gtk_label_new("My invoices");
      gtk_widget_set_halign(GTK_WIDGET(invoice_label), GTK_ALIGN_CENTER);
      gtk_widget_set_valign(GTK_WIDGET(invoice_label), GTK_ALIGN_CENTER);
      set_widget_css(GTK_WIDGET(invoice_label), "invoice_label",
@@ -4905,11 +5245,21 @@ void set_login_win_objs() {
         g_printerr("Failed to get 'main_window' from builder UI file\n");
     }
     gtk_window_maximize(GTK_WINDOW(main_window));
-    set_widget_css(GTK_WIDGET(main_window), "login_window", "window#login_window { background: #F2FAFD;}");
+    set_widget_css(GTK_WIDGET(main_window), "main_window",
+    "window#main_window { "
+    "background: url('file:///C:/Users/asus/Documents/medicalOffice/cmake-build-debug/imgs/MedOfficeBg.png');"
+    "background-repeat: no-repeat; "
+    "background-position: center; "
+    "background-color: #f7f7f7 ; "
+    "background-size: cover;"
+    "}");
 
     GObject *login_grid = gtk_builder_get_object(builder, "login_grid");
-    set_widget_css(GTK_WIDGET(login_grid), "login_grid", "grid#login_grid { min-width: 400px; background: #F2FAFD;}");
+    set_widget_css(GTK_WIDGET(login_grid), "login_grid", "grid#login_grid {min-width: 600px;}");
     gtk_widget_set_hexpand(GTK_WIDGET(login_grid), TRUE);
+
+    GObject *login_title_label = gtk_builder_get_object(builder, "login_title_label");
+    set_widget_css(GTK_WIDGET(login_title_label), "login_label", "label#login_label {font-size: 96px ;}");
 
     GObject *email_err_label = gtk_builder_get_object(builder, "login_email_err_label");
     if (!email_err_label) {
@@ -4974,11 +5324,21 @@ void set_register_win_objs() {
         g_printerr("Failed to get 'main_window' from builder UI file\n");
     }
     gtk_window_maximize(GTK_WINDOW(register_window));
-    set_widget_css(GTK_WIDGET(register_window), "main_window", "window#main_window { background: #F2FAFD;}");
+    set_widget_css(GTK_WIDGET(register_window), "register_window",
+    "window#register_window { "
+    "background: url('file:///C:/Users/asus/Documents/medicalOffice/cmake-build-debug/imgs/MedOfficeBg.png');"
+    "background-repeat: no-repeat; "
+    "background-position: center; "
+    "background-color: #f7f7f7 ; "
+    "background-size: cover;"
+    "}");
 
 
     GObject *grid = gtk_builder_get_object(builder, "register_grid");
     gtk_widget_set_size_request(GTK_WIDGET(grid), 600, 800);
+
+    GObject *register_title_label = gtk_builder_get_object(builder, "register_title_label");
+    set_widget_css(GTK_WIDGET(register_title_label), "register_label", "label#register_label {font-size: 96px ;}");
 
     GObject *register_cin_label = gtk_builder_get_object(builder, "register_cin_label");
     gtk_label_set_text(GTK_LABEL(register_cin_label), "");
@@ -5108,38 +5468,119 @@ void set_main_win_objs() {
         g_printerr("Failed to get 'main_window' from builder UI file\n");
     }
     gtk_window_maximize(GTK_WINDOW(main_window));
-    set_widget_css(GTK_WIDGET(main_window), "main_window", "window#main_window { background: #F2FAFD;}");
+    set_widget_css(GTK_WIDGET(main_window), "main_window",
+    "window#main_window { "
+    "background: url('file:///C:/Users/asus/Documents/medicalOffice/cmake-build-debug/imgs/MedOfficeBg.png');"
+    "background-repeat: no-repeat; "
+    "background-position: center; "
+    "background-color: #f7f7f7 ; "
+    "background-size: cover;"
+    "}");
+
 
     GObject *main_grid = gtk_builder_get_object(builder, "main_grid");
     if (!main_grid) {
         g_printerr("Failed to get 'main_grid' from builder UI file\n");
     }
+    set_widget_css(GTK_WIDGET(main_grid), "main_grid",
+    "grid#main_grid { "
+    "padding: 120px;"
+    "}");
 
     GObject *main_title_label = gtk_builder_get_object(builder, "main_title_label");
     if (!main_title_label) {
         g_printerr("Failed to get 'main title' label from builder UI file\n");
         return;
     }
-    set_widget_css(GTK_WIDGET(main_title_label), "main_title_label", "label#main_title_label { color: #9E999C; font-size: 128px;}");
+    set_widget_css(GTK_WIDGET(main_title_label), "main_title_label", "label#main_title_label {color: #000; font-size: 128px;}");
+
+    GObject *main_intro_label = gtk_builder_get_object(builder, "main_intro_label");
+    if (!main_intro_label) {
+        g_printerr("Failed to get 'main intro' label from builder UI file\n");
+        return;
+    }
+    set_widget_css(GTK_WIDGET(main_intro_label), "main_intro_label", "label#main_intro_label {margin-bottom: 120px; color: #000; font-size: 24px;}");
 
     GObject *register_btn = gtk_builder_get_object(builder, "main_register_btn");
     if (!register_btn) {
         g_printerr("Failed to get 'Register' button from builder UI file\n");
         return;
     }
-    set_widget_css(GTK_WIDGET(register_btn), "register_btn", "button#register_btn { color: #000; background: #AEDFE2; border: #AEDFE2; font-size: 16px; padding: 10px; }"
-                                                              "#register_btn:hover {background: #85BDC8;}");
+    set_widget_css(GTK_WIDGET(register_btn), "btn",
+    "button#btn { "
+    "   min-width: 150px; "
+    "   min-height: 130px; "
+    "   margin: 10px;"
+    "   padding: 0px;"
+    "   border: 0px;"
+    "   border-radius: 10px;"
+    "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%);"
+    "   transition: transform 0.3s, background 0.3s;"
+    "}"
+    "#btn:hover {"
+    "   background: linear-gradient(45deg, rgba(242,227,214,0.9) 0%, rgba(255,255,255,1) 50%);"
+    "   transform: scale(1.05);"
+    "   transition: transform 0.3s, background 0.3s;"
+    "}");
 
+    GtkWidget *register_overlay = gtk_overlay_new();
+    //-------------------------------------
+    GtkWidget *register_label = gtk_label_new("Register");
+    gtk_widget_set_halign(GTK_WIDGET(register_label), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(register_label), GTK_ALIGN_CENTER);
+    set_widget_css(GTK_WIDGET(register_label), "register_label","label#register_label {font-size: 24px;}");
+    gtk_overlay_add_overlay(GTK_OVERLAY(register_overlay), register_label);
+    //-------------------------------------
+    GtkWidget *part_of_design_5 = gtk_image_new_from_file("imgs/part_of_design_5.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(part_of_design_5), 50);
+    gtk_widget_set_halign(GTK_WIDGET(part_of_design_5), GTK_ALIGN_END);
+    gtk_widget_set_valign(GTK_WIDGET(part_of_design_5), GTK_ALIGN_END);
+    gtk_overlay_add_overlay(GTK_OVERLAY(register_overlay), part_of_design_5);
+
+    //-------------------------------------
+    gtk_button_set_child(GTK_BUTTON(register_btn), register_overlay);
+
+    //-------------------------------------
     GObject *login_btn = gtk_builder_get_object(builder, "main_login_btn");
+    gtk_widget_set_hexpand(GTK_WIDGET(login_btn), FALSE);
+
     if (!login_btn) {
         g_printerr("Failed to get 'Login' button from builder UI file\n");
         return;
     }
-    set_widget_css(GTK_WIDGET(login_btn), "login_btn", "button#login_btn { color: #000; background: #AEDFE2; border: #AEDFE2; font-size: 16px; padding: 10px;}"
-                                                        "#login_btn:hover {background: #85BDC8;}");
+    set_widget_css(GTK_WIDGET(login_btn), "btn",
+    "button#btn { "
+    "   min-width: 150px; "
+    "   min-height: 130px; "
+    "   margin: 10px;"
+    "   padding: 0px;"
+    "   border: 0px;"
+    "   border-radius: 10px;"
+    "   background: linear-gradient(45deg, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 50%);"
+    "   transition: transform 0.3s, background 0.3s;"
+    "}"
+    "#btn:hover {"
+    "   background: linear-gradient(45deg, rgba(216, 213, 2470, 0.9) 0%, rgba(255,255,255,1) 50%);"
+    "   transform: scale(1.05);"
+    "   transition: transform 0.3s, background 0.3s;"
+    "}");
 
-    // set_register_win_objs();
-    // set_login_win_objs();
+    GtkWidget *login_overlay = gtk_overlay_new();
+    //-------------------------------------
+    GtkWidget *login_label = gtk_label_new("Login");
+    gtk_widget_set_halign(GTK_WIDGET(login_label), GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(GTK_WIDGET(login_label), GTK_ALIGN_CENTER);
+    set_widget_css(GTK_WIDGET(login_label), "login_label","label#login_label { font-size: 24px;}");
+    gtk_overlay_add_overlay(GTK_OVERLAY(login_overlay), login_label);
+    //-------------------------------------
+    GtkWidget *part_of_design_6 = gtk_image_new_from_file("imgs/part_of_design_6.svg");
+    gtk_image_set_pixel_size(GTK_IMAGE(part_of_design_6), 50);
+    gtk_widget_set_halign(GTK_WIDGET(part_of_design_6), GTK_ALIGN_END);
+    gtk_widget_set_valign(GTK_WIDGET(part_of_design_6), GTK_ALIGN_END);
+    gtk_overlay_add_overlay(GTK_OVERLAY(login_overlay), part_of_design_6);
+    //-------------------------------------
+
+    gtk_button_set_child(GTK_BUTTON(login_btn), login_overlay);
 
     g_signal_connect(register_btn, "clicked", G_CALLBACK(switch_to_window), GINT_TO_POINTER(REGISTER));
     g_signal_connect(register_btn, "clicked", G_CALLBACK(set_register_win_objs), NULL);
