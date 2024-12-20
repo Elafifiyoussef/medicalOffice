@@ -2,11 +2,11 @@
 MedNova is a comprehensive medical office management system designed to streamline operations for doctors and users. It simplifies scheduling, record management, and communication within a secure and user-friendly platform.
 
 ## Table of Contents
-Features.
-Installation.
-Usage.
-Screenshots.
-Technologies Used.
+- Features.
+- Installation.
+- Usage.
+- Screenshots.
+- Technologies Used.
 
 ## User Functionalities:
 Appointment Management: Book, cancel, and modify appointments (subject to rules like changes before 23:59 on the previous day).
