@@ -3,7 +3,6 @@ MedNova is a comprehensive medical office management system designed to streamli
 
 ## Table of Contents
 Features.
-
 Installation.
 Usage.
 Screenshots.
