@@ -2,15 +2,12 @@
 MedNova is a comprehensive medical office management system designed to streamline operations for doctors and users. It simplifies scheduling, record management, and communication within a secure and user-friendly platform.
 
 ## Table of Contents
-Features
+Features.
 
-Installation
-
-Usage
-
-Screenshots
-
-Technologies Used
+Installation.
+Usage.
+Screenshots.
+Technologies Used.
 
 ## User Functionalities:
 Appointment Management: Book, cancel, and modify appointments (subject to rules like changes before 23:59 on the previous day).
@@ -95,5 +92,6 @@ For Admins:
 GTK: The project utilizes GTK (GIMP Toolkit) for creating the graphical user interface, providing a robust and flexible framework for building cross-platform applications.
 C Programming Language: All core functionalities and application logic have been implemented using the C programming language, ensuring performance and efficiency.
 CSS for Styling: Custom styling of the application's interface has been achieved using CSS, allowing for a modern and visually appealing user experience.
+
 
 
