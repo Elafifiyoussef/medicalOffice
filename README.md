@@ -7,7 +7,6 @@ Installation
 Usage
 Screenshots
 Contributing
-License
 Acknowledgments
 Features
 
@@ -82,9 +81,17 @@ For Users:
 - Consultations: View past and upcoming consultations, keep track of your medical history, and access detailed notes from each session.
 - Invoices: View, download, or request invoices for consultations, appointments, or other services provided at the medical office.
 - Track Your Appointments: View upcoming appointments and receive reminders for better planning and time management.
+
 For Admins:
 - Admin Dashboard: A centralized interface to manage patient records, appointments, and system settings.
 - Patient Records Management: Add, update, or delete patient information to ensure accuracy and up-to-date records.
 - Appointment Oversight: Monitor and manage the appointment schedule, resolving conflicts or adjusting timings as necessary to accommodate patient needs.
+
+## Screenshots
+
+## Technologies Used
+GTK: The project utilizes GTK (GIMP Toolkit) for creating the graphical user interface, providing a robust and flexible framework for building cross-platform applications.
+C Programming Language: All core functionalities and application logic have been implemented using the C programming language, ensuring performance and efficiency.
+CSS for Styling: Custom styling of the application's interface has been achieved using CSS, allowing for a modern and visually appealing user experience.
 
 
