@@ -8,11 +8,12 @@ MedNova is a comprehensive medical office management system designed to streamli
 - Screenshots.
 - Technologies Used.
 
-## User Functionalities:
+## Functionalities:
+#### User Functionalities:
 Appointment Management: Book, cancel, and modify appointments (subject to rules like changes before 23:59 on the previous day).
 Record Access: View personal appointment details and updates from the medical office.
-Admin Functionalities:
 
+#### Admin Functionalities:
 Patient Record Management: Create, update, and organize patient records securely.
 Appointment Oversight: Manage and oversee all appointments, ensuring availability and smooth scheduling.
 System Configuration: Set up user accounts and customize system settings.
