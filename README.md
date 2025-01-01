@@ -56,6 +56,7 @@ pacman -S mingw-w64-x86_64-glib2
 1- Open Environment Variable Settings
 - Press Win + S, type Environment Variables, and select Edit the system environment variables.
 - In the System Properties window, click the Environment Variables button.
+
 2- Add MinGW Bin Directory to PATH
 - Under System Variables, find and select the Path variable, then click Edit.
 - Click New and add the path to the MinGW bin directory. For MSYS2, this is typically:
@@ -63,12 +64,14 @@ pacman -S mingw-w64-x86_64-glib2
 C:\msys64\mingw64\bin
 ```
 ### Steps 4: to Execute the Program:
-1- Locate the .exe File
-- Open the cmake-build-debug directory. This is usually in the root folder of your project.
+1- Locate the `.exe` File
+- Open the `cmake-build-debug` directory. This is usually in the root folder of your project.
 - Look for a file with the .exe extension (e.g., gtk_app.exe).
+  
 2- Double-Click to Run
 - Double-click the .exe file to execute the program.
 - The GTK application window should open, displaying your user interface.
+  
 3- Troubleshooting
 - If the `.exe` file doesn’t run, ensure all required GTK runtime libraries are in your PATH (see Step 3: Set Up the Environment).
 - If you encounter errors related to missing DLLs, confirm that the `mingw64/bin` directory is correctly added to your environment variables.
